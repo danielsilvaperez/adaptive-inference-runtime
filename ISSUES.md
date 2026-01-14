@@ -1,45 +1,29 @@
-#!/bin/bash
-# Script to create all parallel task issues using GitHub CLI
-#
-# Prerequisites:
-# - GitHub CLI (gh) installed and authenticated
-# - Run: gh auth login
-#
-# Usage:
-#   ./create_issues_with_gh.sh
+# Summary
 
-set -e
+| Phase | Task Count | Priority Distribution |
+|-------|------------|----------------------|
+| Phase 0 | 2 | P0: 1, P1: 1 |
+| Phase 1 | 4 | P0: 4 |
+| Phase 2 | 2 | P0: 1, P1: 1 |
+| Phase 3 | 5 | P0: 4, P1: 1 |
+| Phase 4 | 1 | P0: 1 |
+| Phase 5 | 4 | P0: 3, P2: 1 |
+| Phase 6 | 4 | P0: 1, P1: 2, P2: 1 |
+| **Total** | **22** | **P0: 15, P1: 5, P2: 2** |
 
-REPO="danielsilva010/Adaptive-Inference-Runtime"
+---
 
-echo "Creating GitHub issues for parallel tasks in $REPO"
-echo "=================================================="
-echo""
+## Issue Templates
 
-# Counter
-CREATED=0
-FAILED=0
+### Phase 0: Foundations
 
-# Helper function to create an issue
-create_issue() {
-    local title="$1"
-    local body="$2"
-    local labels="$3"
+#### Issue 1: [Phase 0] Task 0.1: Repository Structure Setup
 
-    if gh issue create --repo "$REPO" --title "$title" --body "$body" --label "$labels"; then
-        echo "✓ Created: $title"
-        ((CREATED++))
-    else
-        echo "✗ Failed: $title"
-        ((FAILED++))
-    fi
-    echo ""
-}
+**Labels:** `phase-0`, `parallel`, `P0`, `infrastructure`
 
-# Phase 0
-create_issue \
-    "[Phase 0] Task 0.1: Repository Structure Setup" \
-    "## Phase 0 - Task 0.1: Repository Structure Setup
+**Body:**
+```markdown
+## Phase 0 - Task 0.1: Repository Structure Setup
 **Priority:** P0 (Critical)
 **Type:** PARALLEL - Can be worked on independently
 **Phase Dependencies:** None (starting point)
@@ -48,10 +32,10 @@ create_issue \
 Set up the foundational repository structure and development infrastructure for the Adaptive Inference Runtime project.
 
 ### Subtasks
-- [ ] **0.1.1** Create core directory structure (\`/air\`, \`/tests\`, \`/benchmarks\`, \`/examples\`)
-- [ ] **0.1.2** Set up Python package structure (\`setup.py\`, \`pyproject.toml\`)
+- [ ] **0.1.1** Create core directory structure (`/air`, `/tests`, `/benchmarks`, `/examples`)
+- [ ] **0.1.2** Set up Python package structure (`setup.py`, `pyproject.toml`)
 - [ ] **0.1.3** Initialize logging configuration and utilities
-- [ ] **0.1.4** Create \`.gitignore\` for Python, C++, and model artifacts
+- [ ] **0.1.4** Create `.gitignore` for Python, C++, and model artifacts
 - [ ] **0.1.5** Set up CI/CD workflows (linting, testing, type checking)
 
 ### Acceptance Criteria
@@ -60,12 +44,18 @@ Set up the foundational repository structure and development infrastructure for 
 - CI runs pass
 
 ### Related Documentation
-See ROADMAP.md Phase 0 for full context." \
-    "phase-0,parallel,P0,infrastructure"
+See ROADMAP.md Phase 0 for full context.
+```
 
-create_issue \
-    "[Phase 0] Task 0.3: Documentation Foundation" \
-    "## Phase 0 - Task 0.3: Documentation Foundation
+---
+
+#### Issue 2: [Phase 0] Task 0.3: Documentation Foundation
+
+**Labels:** `phase-0`, `parallel`, `P1`, `documentation`
+
+**Body:**
+```markdown
+## Phase 0 - Task 0.3: Documentation Foundation
 **Priority:** P1 (High)
 **Type:** PARALLEL - Can run alongside API definitions
 **Phase Dependencies:** None (starting point)
@@ -83,13 +73,20 @@ Create the foundational documentation structure to support contributors and user
 Clear documentation for new contributors
 
 ### Related Documentation
-See ROADMAP.md Phase 0 for full context." \
-    "phase-0,parallel,P1,documentation"
+See ROADMAP.md Phase 0 for full context.
+```
 
-# Phase 1
-create_issue \
-    "[Phase 1] Task 1.2.1: Implement Token Entropy Calculation" \
-    "## Phase 1 - Task 1.2.1: Implement Token Entropy Calculation
+---
+
+### Phase 1: Small → Large Routing
+
+#### Issue 3: [Phase 1] Task 1.2.1: Implement Token Entropy Calculation
+
+**Labels:** `phase-1`, `parallel`, `P0`, `routing`, `confidence-scoring`
+
+**Body:**
+```markdown
+## Phase 1 - Task 1.2.1: Implement Token Entropy Calculation
 **Priority:** P0 (Critical)
 **Type:** PARALLEL - Independent confidence metric
 **Phase Dependencies:** Blocked by Task 0.2 (Core API Definitions)
@@ -106,12 +103,18 @@ Implement token entropy calculation for confidence scoring in the routing system
 Metric produces sensible scores, validated with test cases
 
 ### Related Documentation
-See ROADMAP.md Phase 1, Task 1.2 for full context." \
-    "phase-1,parallel,P0,routing,confidence-scoring"
+See ROADMAP.md Phase 1, Task 1.2 for full context.
+```
 
-create_issue \
-    "[Phase 1] Task 1.2.2: Implement Logprob Slope Tracker" \
-    "## Phase 1 - Task 1.2.2: Implement Logprob Slope Tracker
+---
+
+#### Issue 4: [Phase 1] Task 1.2.2: Implement Logprob Slope Tracker
+
+**Labels:** `phase-1`, `parallel`, `P0`, `routing`, `confidence-scoring`
+
+**Body:**
+```markdown
+## Phase 1 - Task 1.2.2: Implement Logprob Slope Tracker
 **Priority:** P0 (Critical)
 **Type:** PARALLEL - Independent confidence metric
 **Phase Dependencies:** Blocked by Task 0.2 (Core API Definitions)
@@ -128,12 +131,18 @@ Implement logprob slope tracking for detecting confidence drops in generation.
 Metric produces sensible scores, validated with test cases
 
 ### Related Documentation
-See ROADMAP.md Phase 1, Task 1.2 for full context." \
-    "phase-1,parallel,P0,routing,confidence-scoring"
+See ROADMAP.md Phase 1, Task 1.2 for full context.
+```
 
-create_issue \
-    "[Phase 1] Task 1.2.3: Implement Top-k Disagreement Metric" \
-    "## Phase 1 - Task 1.2.3: Implement Top-k Disagreement Metric
+---
+
+#### Issue 5: [Phase 1] Task 1.2.3: Implement Top-k Disagreement Metric
+
+**Labels:** `phase-1`, `parallel`, `P0`, `routing`, `confidence-scoring`
+
+**Body:**
+```markdown
+## Phase 1 - Task 1.2.3: Implement Top-k Disagreement Metric
 **Priority:** P0 (Critical)
 **Type:** PARALLEL - Independent confidence metric
 **Phase Dependencies:** Blocked by Task 0.2 (Core API Definitions)
@@ -150,12 +159,18 @@ Implement top-k disagreement metric for measuring prediction consensus.
 Metric produces sensible scores, validated with test cases
 
 ### Related Documentation
-See ROADMAP.md Phase 1, Task 1.2 for full context." \
-    "phase-1,parallel,P0,routing,confidence-scoring"
+See ROADMAP.md Phase 1, Task 1.2 for full context.
+```
 
-create_issue \
-    "[Phase 1] Task 1.2.4: Implement Attention Instability Detector (Optional)" \
-    "## Phase 1 - Task 1.2.4: Implement Attention Instability Detector
+---
+
+#### Issue 6: [Phase 1] Task 1.2.4: Implement Attention Instability Detector (Optional)
+
+**Labels:** `phase-1`, `parallel`, `P0`, `routing`, `confidence-scoring`, `optional`
+
+**Body:**
+```markdown
+## Phase 1 - Task 1.2.4: Implement Attention Instability Detector
 **Priority:** P0 (Critical)
 **Type:** PARALLEL - Independent confidence metric
 **Phase Dependencies:** Blocked by Task 0.2 (Core API Definitions)
@@ -172,13 +187,20 @@ Implement attention instability detection for confidence scoring (optional featu
 Metric produces sensible scores, validated with test cases
 
 ### Related Documentation
-See ROADMAP.md Phase 1, Task 1.2 for full context." \
-    "phase-1,parallel,P0,routing,confidence-scoring,optional"
+See ROADMAP.md Phase 1, Task 1.2 for full context.
+```
 
-# Phase 2
-create_issue \
-    "[Phase 2] Task 2.1: Draft Generation for Speculative Decoding" \
-    "## Phase 2 - Task 2.1: Draft Generation
+---
+
+### Phase 2: Speculative Decoding
+
+#### Issue 7: [Phase 2] Task 2.1: Draft Generation for Speculative Decoding
+
+**Labels:** `phase-2`, `parallel`, `P0`, `speculative-decoding`
+
+**Body:**
+```markdown
+## Phase 2 - Task 2.1: Draft Generation
 **Priority:** P0 (Critical)
 **Type:** PARALLEL - Can start once adapters ready
 **Phase Dependencies:** Blocked by Task 1.1 (Model Adapters)
@@ -202,12 +224,18 @@ Implement draft generation for speculative decoding using the small model.
 Small model efficiently generates draft sequences
 
 ### Related Documentation
-See ROADMAP.md Phase 2 for full context." \
-    "phase-2,parallel,P0,speculative-decoding"
+See ROADMAP.md Phase 2 for full context.
+```
 
-create_issue \
-    "[Phase 2] Task 2.4: Speculative Decoding Benchmarking" \
-    "## Phase 2 - Task 2.4: Benchmarking
+---
+
+#### Issue 8: [Phase 2] Task 2.4: Speculative Decoding Benchmarking
+
+**Labels:** `phase-2`, `parallel`, `P1`, `benchmarking`, `speculative-decoding`
+
+**Body:**
+```markdown
+## Phase 2 - Task 2.4: Benchmarking
 **Priority:** P1 (High)
 **Type:** PARALLEL - Can be prepared alongside pipeline development
 **Phase Dependencies:** Blocked by Task 2.3 (Speculation Pipeline)
@@ -232,13 +260,20 @@ Create comprehensive benchmarking suite for speculative decoding.
 2–3× faster decoding with zero quality loss (verified by benchmarks)
 
 ### Related Documentation
-See ROADMAP.md Phase 2 for full context." \
-    "phase-2,parallel,P1,benchmarking,speculative-decoding"
+See ROADMAP.md Phase 2 for full context.
+```
 
-# Phase 3
-create_issue \
-    "[Phase 3] Task 3.2.1: Implement Sliding Window Eviction" \
-    "## Phase 3 - Task 3.2.1: Implement Sliding Window Eviction
+---
+
+### Phase 3: KV Cache Compression
+
+#### Issue 9: [Phase 3] Task 3.2.1: Implement Sliding Window Eviction
+
+**Labels:** `phase-3`, `parallel`, `P0`, `kv-compression`
+
+**Body:**
+```markdown
+## Phase 3 - Task 3.2.1: Implement Sliding Window Eviction
 **Priority:** P0 (Critical)
 **Type:** PARALLEL - Independent compression technique
 **Phase Dependencies:** Blocked by Task 3.1 (KV Cache Infrastructure)
@@ -255,12 +290,18 @@ Implement sliding window eviction policy for KV cache compression.
 Policy reduces memory, measurable impact on quality
 
 ### Related Documentation
-See ROADMAP.md Phase 3, Task 3.2 for full context." \
-    "phase-3,parallel,P0,kv-compression"
+See ROADMAP.md Phase 3, Task 3.2 for full context.
+```
 
-create_issue \
-    "[Phase 3] Task 3.2.2: Implement Heavy Hitter Retention" \
-    "## Phase 3 - Task 3.2.2: Implement Heavy Hitter Retention
+---
+
+#### Issue 10: [Phase 3] Task 3.2.2: Implement Heavy Hitter Retention
+
+**Labels:** `phase-3`, `parallel`, `P0`, `kv-compression`
+
+**Body:**
+```markdown
+## Phase 3 - Task 3.2.2: Implement Heavy Hitter Retention
 **Priority:** P0 (Critical)
 **Type:** PARALLEL - Independent compression technique
 **Phase Dependencies:** Blocked by Task 3.1 (KV Cache Infrastructure)
@@ -277,12 +318,18 @@ Implement heavy hitter retention policy for KV cache compression.
 Policy reduces memory, measurable impact on quality
 
 ### Related Documentation
-See ROADMAP.md Phase 3, Task 3.2 for full context." \
-    "phase-3,parallel,P0,kv-compression"
+See ROADMAP.md Phase 3, Task 3.2 for full context.
+```
 
-create_issue \
-    "[Phase 3] Task 3.2.3: Implement H2O-style Eviction (Optional)" \
-    "## Phase 3 - Task 3.2.3: Implement H2O-style Eviction
+---
+
+#### Issue 11: [Phase 3] Task 3.2.3: Implement H2O-style Eviction (Optional)
+
+**Labels:** `phase-3`, `parallel`, `P0`, `kv-compression`, `optional`
+
+**Body:**
+```markdown
+## Phase 3 - Task 3.2.3: Implement H2O-style Eviction
 **Priority:** P0 (Critical)
 **Type:** PARALLEL - Independent compression technique
 **Phase Dependencies:** Blocked by Task 3.1 (KV Cache Infrastructure)
@@ -299,12 +346,18 @@ Implement H2O-style eviction policy for KV cache compression (optional).
 Policy reduces memory, measurable impact on quality
 
 ### Related Documentation
-See ROADMAP.md Phase 3, Task 3.2 for full context." \
-    "phase-3,parallel,P0,kv-compression,optional"
+See ROADMAP.md Phase 3, Task 3.2 for full context.
+```
 
-create_issue \
-    "[Phase 3] Task 3.2.4: Implement int8 KV Quantization (Optional)" \
-    "## Phase 3 - Task 3.2.4: Implement int8 KV Quantization
+---
+
+#### Issue 12: [Phase 3] Task 3.2.4: Implement int8 KV Quantization (Optional)
+
+**Labels:** `phase-3`, `parallel`, `P0`, `kv-compression`, `optional`
+
+**Body:**
+```markdown
+## Phase 3 - Task 3.2.4: Implement int8 KV Quantization
 **Priority:** P0 (Critical)
 **Type:** PARALLEL - Independent compression technique
 **Phase Dependencies:** Blocked by Task 3.1 (KV Cache Infrastructure)
@@ -321,12 +374,18 @@ Implement int8 quantization for KV cache tensors (optional).
 Quantization reduces memory, measurable impact on quality
 
 ### Related Documentation
-See ROADMAP.md Phase 3, Task 3.2 for full context." \
-    "phase-3,parallel,P0,kv-compression,optional"
+See ROADMAP.md Phase 3, Task 3.2 for full context.
+```
 
-create_issue \
-    "[Phase 3] Task 3.3: Safety & Quality Guards" \
-    "## Phase 3 - Task 3.3: Safety & Quality Guards
+---
+
+#### Issue 13: [Phase 3] Task 3.3: Safety & Quality Guards
+
+**Labels:** `phase-3`, `parallel`, `P1`, `kv-compression`, `safety`
+
+**Body:**
+```markdown
+## Phase 3 - Task 3.3: Safety & Quality Guards
 **Priority:** P1 (High)
 **Type:** PARALLEL - Can develop alongside eviction policies
 **Phase Dependencies:** Blocked by Task 3.1 (KV Cache Infrastructure)
@@ -352,13 +411,20 @@ Implement safety guards and quality monitoring for KV cache compression.
 Guards prevent quality issues, presets make compression easy to use
 
 ### Related Documentation
-See ROADMAP.md Phase 3 for full context." \
-    "phase-3,parallel,P1,kv-compression,safety"
+See ROADMAP.md Phase 3 for full context.
+```
 
-# Phase 4
-create_issue \
-    "[Phase 4] Task 4.2: Memory Management for MacBook" \
-    "## Phase 4 - Task 4.2: Memory Management
+---
+
+### Phase 4: MacBook Enablement
+
+#### Issue 14: [Phase 4] Task 4.2: Memory Management for MacBook
+
+**Labels:** `phase-4`, `parallel`, `P0`, `memory-management`, `macos`
+
+**Body:**
+```markdown
+## Phase 4 - Task 4.2: Memory Management
 **Priority:** P0 (Critical)
 **Type:** PARALLEL - Can develop alongside Metal backend
 **Phase Dependencies:** Blocked by Phase 1 and Phase 3 (routing + compression)
@@ -384,13 +450,20 @@ Implement unified memory management for running on constrained hardware like Mac
 System gracefully handles memory pressure, doesn't crash
 
 ### Related Documentation
-See ROADMAP.md Phase 4 for full context." \
-    "phase-4,parallel,P0,memory-management,macos"
+See ROADMAP.md Phase 4 for full context.
+```
 
-# Phase 5
-create_issue \
-    "[Phase 5] Task 5.2.1: Benchmark Small Model Only" \
-    "## Phase 5 - Task 5.2.1: Benchmark Small Model Only
+---
+
+### Phase 5: Benchmarking + Proof
+
+#### Issue 15: [Phase 5] Task 5.2.1: Benchmark Small Model Only
+
+**Labels:** `phase-5`, `parallel`, `P0`, `benchmarking`
+
+**Body:**
+```markdown
+## Phase 5 - Task 5.2.1: Benchmark Small Model Only
 **Priority:** P0 (Critical)
 **Type:** PARALLEL - Independent baseline evaluation
 **Phase Dependencies:** Blocked by Task 5.1 (Benchmark Infrastructure)
@@ -407,12 +480,18 @@ Evaluate small model (7B/13B) alone as a baseline for comparison.
 Complete baseline numbers for small model
 
 ### Related Documentation
-See ROADMAP.md Phase 5 for full context." \
-    "phase-5,parallel,P0,benchmarking"
+See ROADMAP.md Phase 5 for full context.
+```
 
-create_issue \
-    "[Phase 5] Task 5.2.2: Benchmark Large Model Only" \
-    "## Phase 5 - Task 5.2.2: Benchmark Large Model Only
+---
+
+#### Issue 16: [Phase 5] Task 5.2.2: Benchmark Large Model Only
+
+**Labels:** `phase-5`, `parallel`, `P0`, `benchmarking`
+
+**Body:**
+```markdown
+## Phase 5 - Task 5.2.2: Benchmark Large Model Only
 **Priority:** P0 (Critical)
 **Type:** PARALLEL - Independent baseline evaluation
 **Phase Dependencies:** Blocked by Task 5.1 (Benchmark Infrastructure)
@@ -429,12 +508,18 @@ Evaluate large model (70B) alone as a baseline for comparison.
 Complete baseline numbers for large model
 
 ### Related Documentation
-See ROADMAP.md Phase 5 for full context." \
-    "phase-5,parallel,P0,benchmarking"
+See ROADMAP.md Phase 5 for full context.
+```
 
-create_issue \
-    "[Phase 5] Task 5.2.3: Benchmark AIR (Hybrid System)" \
-    "## Phase 5 - Task 5.2.3: Benchmark AIR (Hybrid System)
+---
+
+#### Issue 17: [Phase 5] Task 5.2.3: Benchmark AIR (Hybrid System)
+
+**Labels:** `phase-5`, `parallel`, `P0`, `benchmarking`
+
+**Body:**
+```markdown
+## Phase 5 - Task 5.2.3: Benchmark AIR (Hybrid System)
 **Priority:** P0 (Critical)
 **Type:** PARALLEL - Independent evaluation
 **Phase Dependencies:** Blocked by Task 5.1 (Benchmark Infrastructure) and all Phase 1-3 features
@@ -452,12 +537,18 @@ Evaluate the complete AIR system with all features enabled.
 Complete benchmark results for AIR system
 
 ### Related Documentation
-See ROADMAP.md Phase 5 for full context." \
-    "phase-5,parallel,P0,benchmarking"
+See ROADMAP.md Phase 5 for full context.
+```
 
-create_issue \
-    "[Phase 5] Task 5.4: Publication Prep" \
-    "## Phase 5 - Task 5.4: Publication Prep
+---
+
+#### Issue 18: [Phase 5] Task 5.4: Publication Prep
+
+**Labels:** `phase-5`, `parallel`, `P2`, `documentation`, `publication`
+
+**Body:**
+```markdown
+## Phase 5 - Task 5.4: Publication Prep
 **Priority:** P2 (Medium)
 **Type:** PARALLEL - Can start once results are ready
 **Phase Dependencies:** Blocked by Task 5.3 (Analysis & Visualization)
@@ -483,13 +574,20 @@ Prepare materials for publication and community sharing.
 Hard numbers demonstrating 2–4× speedup, 4–8× memory reduction, comparable quality
 
 ### Related Documentation
-See ROADMAP.md Phase 5 for full context." \
-    "phase-5,parallel,P2,documentation,publication"
+See ROADMAP.md Phase 5 for full context.
+```
 
-# Phase 6
-create_issue \
-    "[Phase 6] Task 6.1: Configuration System" \
-    "## Phase 6 - Task 6.1: Configuration System
+---
+
+### Phase 6: Developer UX
+
+#### Issue 19: [Phase 6] Task 6.1: Configuration System
+
+**Labels:** `phase-6`, `parallel`, `P0`, `configuration`, `developer-ux`
+
+**Body:**
+```markdown
+## Phase 6 - Task 6.1: Configuration System
 **Priority:** P0 (Critical)
 **Type:** PARALLEL - Independent of other Phase 6 tasks initially
 **Phase Dependencies:** Blocked by Phase 1 (core functionality needed)
@@ -518,12 +616,18 @@ Design and implement a comprehensive configuration system for AIR.
 Easy-to-use configuration with good defaults
 
 ### Related Documentation
-See ROADMAP.md Phase 6 for full context." \
-    "phase-6,parallel,P0,configuration,developer-ux"
+See ROADMAP.md Phase 6 for full context.
+```
 
-create_issue \
-    "[Phase 6] Task 6.3: Runtime Visualization" \
-    "## Phase 6 - Task 6.3: Runtime Visualization
+---
+
+#### Issue 20: [Phase 6] Task 6.3: Runtime Visualization
+
+**Labels:** `phase-6`, `parallel`, `P1`, `visualization`, `developer-ux`
+
+**Body:**
+```markdown
+## Phase 6 - Task 6.3: Runtime Visualization
 **Priority:** P1 (High)
 **Type:** PARALLEL - Can develop independently
 **Phase Dependencies:** Blocked by Phase 1 (core functionality needed)
@@ -549,12 +653,18 @@ Implement runtime visualization and debugging tools.
 Users can understand what AIR is doing
 
 ### Related Documentation
-See ROADMAP.md Phase 6 for full context." \
-    "phase-6,parallel,P1,visualization,developer-ux"
+See ROADMAP.md Phase 6 for full context.
+```
 
-create_issue \
-    "[Phase 6] Task 6.4: Documentation & Examples" \
-    "## Phase 6 - Task 6.4: Documentation & Examples
+---
+
+#### Issue 21: [Phase 6] Task 6.4: Documentation & Examples
+
+**Labels:** `phase-6`, `parallel`, `P1`, `documentation`, `developer-ux`
+
+**Body:**
+```markdown
+## Phase 6 - Task 6.4: Documentation & Examples
 **Priority:** P1 (High)
 **Type:** PARALLEL - Can develop independently
 **Phase Dependencies:** Blocked by Phase 1 (core functionality needed)
@@ -584,12 +694,18 @@ Create comprehensive documentation and example applications.
 New users can get started in <10 minutes
 
 ### Related Documentation
-See ROADMAP.md Phase 6 for full context." \
-    "phase-6,parallel,P1,documentation,developer-ux"
+See ROADMAP.md Phase 6 for full context.
+```
 
-create_issue \
-    "[Phase 6] Task 6.5: Packaging & Distribution" \
-    "## Phase 6 - Task 6.5: Packaging & Distribution
+---
+
+#### Issue 22: [Phase 6] Task 6.5: Packaging & Distribution
+
+**Labels:** `phase-6`, `parallel`, `P2`, `packaging`, `developer-ux`
+
+**Body:**
+```markdown
+## Phase 6 - Task 6.5: Packaging & Distribution
 **Priority:** P2 (Medium)
 **Type:** PARALLEL - Can develop independently
 **Phase Dependencies:** Blocked by Phase 1 (core functionality needed)
@@ -615,16 +731,14 @@ Create packaging and distribution mechanisms for easy installation.
 AIR is easy to install, configure, and use for new developers
 
 ### Related Documentation
-See ROADMAP.md Phase 6 for full context." \
-    "phase-6,parallel,P2,packaging,developer-ux"
+See ROADMAP.md Phase 6 for full context.
+```
 
-echo ""
-echo "=================================================="
-echo "Summary: $CREATED created, $FAILED failed out of 22 total"
-echo "=================================================="
+---
 
-if [ $FAILED -gt 0 ]; then
-    exit 1
-fi
+## Notes
 
-exit 0
+- All issues are tagged with their phase, type (`parallel`), priority (P0-P2), and relevant technical areas
+- Dependencies are clearly stated in each issue description
+- Each issue includes detailed subtasks and acceptance criteria
+- Issues can be assigned to different agents/developers for concurrent work
