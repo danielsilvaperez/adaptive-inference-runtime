@@ -17,7 +17,28 @@ This document contains all 22 parallel tasks identified from ROADMAP.md that can
 
 ## How to Create Issues
 
-### Option 1: Using the Python Script (Recommended)
+### Step 1: Create Labels First (Required)
+
+Before creating issues, you need to create the labels in your GitHub repository:
+
+```bash
+# Ensure gh CLI is authenticated
+gh auth login
+
+# Create all necessary labels
+./create_labels.sh
+```
+
+### Step 2: Create the Issues
+
+#### Option A: Using GitHub CLI (Recommended)
+
+```bash
+# Run the issues creation script with gh
+./create_issues_with_gh.sh
+```
+
+#### Option B: Using Python Script
 
 ```bash
 # Set your GitHub token (create one at https://github.com/settings/tokens)
@@ -25,16 +46,6 @@ export GITHUB_TOKEN='your_token_here'
 
 # Run the script
 python3 create_parallel_issues.py
-```
-
-### Option 2: Using GitHub CLI
-
-```bash
-# Ensure gh CLI is authenticated
-gh auth login
-
-# Run the issues creation script with gh
-./create_issues_with_gh.sh
 ```
 
 ### Option 3: Manual Creation
