@@ -115,7 +115,8 @@ These tasks define contracts that other phases depend on.
   - Unified interface for llama.cpp and vLLM
   - KV cache access methods
 - [ ] **0.2.4** Define common types and data structures (`types.py`)
-  - Token, Logits, Entropy, ModelSelection enums
+  - Token, Logits, Entropy types
+  - ModelSelection dataclass (model_id, confidence_score, reason)
   - Configuration dataclasses
 
 **Acceptance Criteria:** Well-documented interfaces with type hints, stub implementations pass type checking
@@ -349,8 +350,8 @@ These compression techniques can be developed independently.
 
 #### Task 3.3: Safety & Quality Guards `[P1]` `[PARALLEL]`
 - [ ] **3.3.1** Implement per-task safety guards
-  - Disable compression for code generation
-  - Disable for retrieval/question answering
+  - Disable compression for code generation (precise context needed)
+  - Disable for retrieval/question answering (context sensitivity requirements)
   - Configurable per use case
 - [ ] **3.3.2** Implement quality monitoring
   - Detect quality degradation automatically
@@ -595,7 +596,11 @@ These baselines can be evaluated independently.
 
 **Example CLI:**
 ```bash
-air run --small llama-7b --big llama-70b --router adaptive
+# Using model paths or names (supports various model formats)
+air run --small /path/to/model-7b --big /path/to/model-70b --router adaptive
+air run --small llama-7b --big llama-70b --router adaptive  # or model registry names
+
+# Benchmarking and serving
 air benchmark --dataset gsm8k --config configs/balanced.yaml
 air serve --port 8080 --workers 4
 ```
@@ -707,6 +712,8 @@ air serve --port 8080 --workers 4
 - Task 6.5 (Packaging & Distribution) - can develop independently
 
 ### Critical Path (Must Be Sequential):
+**Note:** Task IDs referenced below should be kept synchronized if tasks are reorganized.
+
 1. Phase 0: Task 0.2 (Core API Definitions) - blocks all implementation work
 2. Phase 1: Task 1.1 (Model Adapters) - blocks routing and speculation
 3. Phase 1: Task 1.2 → 1.3 → 1.4 (Confidence → Router → Testing)
