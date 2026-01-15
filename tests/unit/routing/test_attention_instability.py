@@ -256,3 +256,113 @@ class TestAttentionInstabilityScorer:
         assert "0.70" in repr_str
         assert "False" in repr_str
         assert "max" in repr_str
+
+    def test_empty_attention_tensor(self):
+        """Test handling of empty attention tensor."""
+        import torch
+
+        scorer = AttentionInstabilityScorer()
+
+        # Create empty attention tensor (0 layers)
+        attn = torch.empty(0, 8, 32, 32)
+        score = scorer.score_from_attention(attn)
+
+        # Should return neutral confidence
+        assert score == 0.5, "Empty tensor should return neutral confidence"
+
+    def test_single_layer_attention(self):
+        """Test handling of single layer attention (no cross-layer variance)."""
+        import torch
+
+        scorer = AttentionInstabilityScorer()
+
+        # Create single layer attention
+        attn = torch.rand(1, 8, 32, 32)
+        attn = torch.softmax(attn, dim=-1)
+
+        score = scorer.score_from_attention(attn)
+
+        # Should compute confidence based on head variance only
+        assert 0.0 <= score <= 1.0, "Single layer score should be in valid range"
+
+    def test_batch_dimension_handling(self):
+        """Test that scorer properly handles batch dimensions."""
+        import torch
+
+        scorer = AttentionInstabilityScorer()
+
+        # Create attention with batch dimension
+        # Shape: (num_layers, num_heads, batch_size, seq_len, seq_len)
+        attn = torch.rand(8, 8, 4, 32, 32)
+        attn = torch.softmax(attn, dim=-1)
+
+        score = scorer.score_from_attention(attn)
+
+        # Should handle batch dimension and return valid score
+        assert 0.0 <= score <= 1.0, "Batch dimension should be handled properly"
+
+    def test_different_aggregation_methods(self):
+        """Test that different aggregation methods produce different but valid scores."""
+        import torch
+
+        attn = torch.rand(16, 8, 32, 32)
+        attn = torch.softmax(attn, dim=-1)
+
+        # Test all aggregation methods
+        scorer_mean = AttentionInstabilityScorer(variance_aggregation="mean")
+        scorer_max = AttentionInstabilityScorer(variance_aggregation="max")
+        scorer_weighted = AttentionInstabilityScorer(variance_aggregation="weighted")
+
+        score_mean = scorer_mean.score_from_attention(attn)
+        score_max = scorer_max.score_from_attention(attn)
+        score_weighted = scorer_weighted.score_from_attention(attn)
+
+        # All should be valid
+        assert 0.0 <= score_mean <= 1.0
+        assert 0.0 <= score_max <= 1.0
+        assert 0.0 <= score_weighted <= 1.0
+
+    def test_sensitivity_property_setter(self):
+        """Test that sensitivity can be changed after initialization."""
+        scorer = AttentionInstabilityScorer(sensitivity=0.5)
+
+        assert scorer.sensitivity == 0.5
+
+        # Update sensitivity
+        scorer.sensitivity = 0.8
+        assert scorer.sensitivity == 0.8
+
+        # Invalid values should raise error
+        with pytest.raises(ValueError):
+            scorer.sensitivity = 1.5
+
+    def test_score_consistency_with_same_input(self):
+        """Test that scoring the same input produces consistent results."""
+        import torch
+
+        scorer = AttentionInstabilityScorer()
+        attn = torch.rand(8, 8, 32, 32)
+
+        score1 = scorer.score_from_attention(attn)
+        score2 = scorer.score_from_attention(attn)
+
+        assert score1 == score2, "Same input should produce same score"
+
+    def test_invalid_shape_raises_error(self):
+        """Test that invalid tensor shapes raise errors."""
+        import torch
+
+        scorer = AttentionInstabilityScorer()
+
+        # Tensor with less than 4 dimensions
+        attn_1d = torch.rand(32)
+        with pytest.raises(ValueError, match="must have at least 4 dimensions"):
+            scorer.score_from_attention(attn_1d)
+
+        attn_2d = torch.rand(8, 32)
+        with pytest.raises(ValueError, match="must have at least 4 dimensions"):
+            scorer.score_from_attention(attn_2d)
+
+        attn_3d = torch.rand(8, 8, 32)
+        with pytest.raises(ValueError, match="must have at least 4 dimensions"):
+            scorer.score_from_attention(attn_3d)
