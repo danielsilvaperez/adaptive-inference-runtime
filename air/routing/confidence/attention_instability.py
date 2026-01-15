@@ -12,17 +12,14 @@ The scorer:
 - Normalizes the instability metric to a confidence score [0.0, 1.0]
 - Supports configurable sensitivity through thresholds
 
-Note: This scorer requires attention weights to be extracted externally 
+Note: This scorer requires attention weights to be extracted externally
 from the model. Not all inference backends provide access to attention weights.
 """
 
 from __future__ import annotations
 
 import torch
-from typing import TYPE_CHECKING, Dict, Optional, Tuple
-
-if TYPE_CHECKING:
-    pass
+from typing import Dict, Optional, Tuple
 
 from air.interfaces.router import BaseConfidenceScorer
 
@@ -267,7 +264,7 @@ class AttentionInstabilityScorer(BaseConfidenceScorer):
 
         # Compute variance across layers at each position
         # Shape: (seq_len, seq_len)
-        attn_variance = torch.var(layer_attn, dim=0)
+        attn_variance = torch.var(layer_attn, dim=0, unbiased=False)
 
         # Take mean variance across all positions
         mean_variance = attn_variance.mean()
@@ -303,7 +300,7 @@ class AttentionInstabilityScorer(BaseConfidenceScorer):
 
         # Compute variance across heads at each position
         # Shape: (num_layers, seq_len, seq_len)
-        head_variance = torch.var(head_attn, dim=1)
+        head_variance = torch.var(head_attn, dim=1, unbiased=False)
 
         # Take mean variance across layers and positions
         mean_variance = head_variance.mean()
@@ -334,7 +331,7 @@ class AttentionInstabilityScorer(BaseConfidenceScorer):
             attention_weights = attention_weights.mean(dim=1)
 
         # Compute variance across heads
-        head_variance = torch.var(attention_weights, dim=0)
+        head_variance = torch.var(attention_weights, dim=0, unbiased=False)
         mean_variance = head_variance.mean()
 
         # Convert variance to confidence using empirical scaling factor
@@ -381,19 +378,19 @@ class AttentionInstabilityScorer(BaseConfidenceScorer):
         layer_attn = attention_weights.mean(dim=1)
 
         # Compute variance across layers at each position
-        attn_variance = torch.var(layer_attn, dim=0)
+        attn_variance = torch.var(layer_attn, dim=0, unbiased=False)
 
         # Head variance per layer
         head_variances = []
         for layer_idx in range(attention_weights.size(0)):
             layer_heads = attention_weights[layer_idx]
-            head_var = torch.var(layer_heads, dim=0).mean()
+            head_var = torch.var(layer_heads, dim=0, unbiased=False).mean()
             head_variances.append(float(head_var))
 
         statistics = {
             "mean_variance": float(attn_variance.mean()),
             "max_variance": float(attn_variance.max()),
-            "std_variance": float(torch.std(attn_variance)),
+            "std_variance": float(torch.std(attn_variance, unbiased=False)),
             "head_disagreement": sum(head_variances) / len(head_variances),
             "overall_instability": self._compute_instability(attention_weights),
         }
