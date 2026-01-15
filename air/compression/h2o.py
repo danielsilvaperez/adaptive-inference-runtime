@@ -19,7 +19,7 @@ H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Mo
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING
 
 import torch
 
@@ -58,7 +58,7 @@ class H2OCompressor(BaseKVCompressor):
         >>> compressed_cache = compressor.compress(cache)
     """
 
-    def __init__(self, config: "CompressionConfig") -> None:
+    def __init__(self, config: CompressionConfig) -> None:
         """
         Initialize the H2O compressor.
 
@@ -75,7 +75,7 @@ class H2OCompressor(BaseKVCompressor):
             )
 
         # Store attention scores per layer: {layer_idx: {token_pos: score}}
-        self._attention_scores: Dict[int, Dict[int, float]] = {}
+        self._attention_scores: dict[int, dict[int, float]] = {}
 
         # Track whether to use per-layer eviction policy
         self._per_layer = config.per_layer_policy
@@ -84,7 +84,7 @@ class H2OCompressor(BaseKVCompressor):
         self,
         layer: int,
         attention_weights: torch.Tensor,
-        token_positions: Optional[List[int]] = None,
+        token_positions: list[int] | None = None,
     ) -> None:
         """
         Update cumulative attention scores for cached tokens.
@@ -140,7 +140,7 @@ class H2OCompressor(BaseKVCompressor):
             else:
                 self._attention_scores[layer][pos] = score
 
-    def reset_attention_scores(self, layer: Optional[int] = None) -> None:
+    def reset_attention_scores(self, layer: int | None = None) -> None:
         """
         Reset accumulated attention scores.
 
@@ -153,7 +153,7 @@ class H2OCompressor(BaseKVCompressor):
         else:
             self._attention_scores.clear()
 
-    def compress(self, cache: "KVCache") -> "KVCache":
+    def compress(self, cache: KVCache) -> KVCache:
         """
         Compress the KV cache using H2O eviction.
 
@@ -178,7 +178,7 @@ class H2OCompressor(BaseKVCompressor):
 
         return self.evict(cache, target_size)
 
-    def evict(self, cache: "KVCache", target_size: int) -> "KVCache":
+    def evict(self, cache: KVCache, target_size: int) -> KVCache:
         """
         Evict tokens from the cache to reach target size using H2O policy.
 
@@ -211,8 +211,8 @@ class H2OCompressor(BaseKVCompressor):
         return self._create_evicted_cache(cache, tokens_to_keep)
 
     def _select_tokens_to_keep(
-        self, cache: "KVCache", target_size: int
-    ) -> List[int]:
+        self, cache: KVCache, target_size: int
+    ) -> list[int]:
         """
         Select which token positions to keep based on H2O policy.
 
@@ -262,13 +262,13 @@ class H2OCompressor(BaseKVCompressor):
         return tokens_to_keep
 
     def _select_heavy_hitters_global(
-        self, cache: "KVCache", evictable_positions: List[int], count: int
-    ) -> List[int]:
+        self, _cache: KVCache, evictable_positions: list[int], count: int
+    ) -> list[int]:
         """
         Select heavy hitters using global attention scores across all layers.
 
         Args:
-            cache: The cache being compressed.
+            _cache: The cache being compressed (unused, for interface consistency).
             evictable_positions: Positions that can be evicted.
             count: How many positions to select.
 
@@ -276,7 +276,7 @@ class H2OCompressor(BaseKVCompressor):
             List of selected token positions.
         """
         # Aggregate scores across all layers
-        global_scores: Dict[int, float] = {}
+        global_scores: dict[int, float] = {}
 
         for layer_scores in self._attention_scores.values():
             for pos, score in layer_scores.items():
@@ -295,8 +295,8 @@ class H2OCompressor(BaseKVCompressor):
         return [pos for pos, _ in sorted_positions[:count]]
 
     def _select_heavy_hitters_per_layer(
-        self, cache: "KVCache", evictable_positions: List[int], count: int
-    ) -> List[int]:
+        self, cache: KVCache, evictable_positions: list[int], count: int
+    ) -> list[int]:
         """
         Select heavy hitters using per-layer attention scores.
 
@@ -312,7 +312,7 @@ class H2OCompressor(BaseKVCompressor):
             List of selected token positions.
         """
         # Calculate per-layer heavy hitters
-        per_layer_hitters: List[List[int]] = []
+        per_layer_hitters: list[list[int]] = []
 
         for layer in range(cache.num_layers):
             if layer not in self._attention_scores:
@@ -346,7 +346,7 @@ class H2OCompressor(BaseKVCompressor):
             return evictable_positions[:count]
 
         # Union of all layer heavy hitters
-        all_hitters = sorted(set(pos for layer_hitters in per_layer_hitters for pos in layer_hitters))
+        all_hitters = sorted({pos for layer_hitters in per_layer_hitters for pos in layer_hitters})
 
         # If we have more than needed, prioritize by global score
         if len(all_hitters) > count:
@@ -389,14 +389,14 @@ class H2OCompressor(BaseKVCompressor):
         return sorted(all_hitters)
 
     def _create_evicted_cache(
-        self, original_cache: "KVCache", positions_to_keep: List[int]
-    ) -> "KVCache":
+        self, original_cache: KVCache, _positions_to_keep: list[int]
+    ) -> KVCache:
         """
         Create a new cache containing only the specified token positions.
 
         Args:
             original_cache: The original cache.
-            positions_to_keep: Token positions to retain.
+            _positions_to_keep: Token positions to retain (unused, for interface).
 
         Returns:
             A new KVCache with only the retained tokens.
@@ -441,8 +441,8 @@ class H2OCompressor(BaseKVCompressor):
         return self._attention_scores.get(layer, {}).get(position, 0.0)
 
     def get_heavy_hitter_positions(
-        self, layer: Optional[int] = None, top_k: int = 10
-    ) -> List[Tuple[int, float]]:
+        self, layer: int | None = None, top_k: int = 10
+    ) -> list[tuple[int, float]]:
         """
         Get the top-k heavy hitter positions by attention score.
 

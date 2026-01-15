@@ -2,14 +2,12 @@
 Unit tests for H2O-style KV cache compressor.
 """
 
-from typing import List, Tuple
-from unittest.mock import MagicMock
 
 import pytest
 import torch
 
 from air.compression.h2o import H2OCompressor
-from air.types import CompressionConfig, KVCache
+from air.types import CompressionConfig
 
 
 class MockKVCache:
@@ -33,7 +31,7 @@ class MockKVCache:
     def max_size(self) -> int:
         return self._max_size
 
-    def get_kv(self, layer: int) -> Tuple[torch.Tensor, torch.Tensor]:
+    def get_kv(self, layer: int) -> tuple[torch.Tensor, torch.Tensor]:
         if layer not in self._kv_data:
             # Create dummy tensors
             batch_size, num_heads, seq_len, head_dim = 1, 8, self._size, 64
@@ -265,7 +263,7 @@ class TestCompression:
         # Compress (this uses the placeholder implementation)
         # The warning is only emitted during eviction, which creates the cache
         with pytest.warns(RuntimeWarning, match="placeholder implementation"):
-            result = compressor.evict(cache, target_size=250)
+            compressor.evict(cache, target_size=250)
 
         # Note: With placeholder implementation, cache is returned unchanged
         # Real implementation would return compressed cache
