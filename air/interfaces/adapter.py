@@ -11,14 +11,8 @@ to work with any compatible model implementation.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import (
-    TYPE_CHECKING,
-    Iterator,
-    List,
-    Protocol,
-    Tuple,
-    runtime_checkable,
-)
+from collections.abc import Iterator
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
     from air.types import GenerationConfig, KVCache, Logits, Token
@@ -127,9 +121,7 @@ class ModelAdapter(Protocol):
         """
         ...
 
-    def generate(
-        self, prompt: str, config: "GenerationConfig"
-    ) -> Iterator["Token"]:
+    def generate(self, prompt: str, config: GenerationConfig) -> Iterator[Token]:
         """
         Generate tokens from a prompt.
 
@@ -156,9 +148,7 @@ class ModelAdapter(Protocol):
         """
         ...
 
-    def generate_batch(
-        self, prompts: List[str], config: "GenerationConfig"
-    ) -> List[List["Token"]]:
+    def generate_batch(self, prompts: list[str], config: GenerationConfig) -> list[list[Token]]:
         """
         Generate tokens for multiple prompts in a batch.
 
@@ -179,7 +169,7 @@ class ModelAdapter(Protocol):
         """
         ...
 
-    def get_logits(self, tokens: List[int]) -> "Logits":
+    def get_logits(self, tokens: list[int]) -> Logits:
         """
         Get the logits for a sequence of token IDs.
 
@@ -199,9 +189,7 @@ class ModelAdapter(Protocol):
         """
         ...
 
-    def verify(
-        self, draft_tokens: List["Token"]
-    ) -> Tuple[List["Token"], int]:
+    def verify(self, draft_tokens: list[Token]) -> tuple[list[Token], int]:
         """
         Verify a sequence of draft tokens for speculative decoding.
 
@@ -233,7 +221,7 @@ class ModelAdapter(Protocol):
         """
         ...
 
-    def get_kv_cache(self) -> "KVCache":
+    def get_kv_cache(self) -> KVCache:
         """
         Get the current KV cache from the model.
 
@@ -249,7 +237,7 @@ class ModelAdapter(Protocol):
         """
         ...
 
-    def set_kv_cache(self, cache: "KVCache") -> None:
+    def set_kv_cache(self, cache: KVCache) -> None:
         """
         Set the KV cache for the model.
 
@@ -265,7 +253,7 @@ class ModelAdapter(Protocol):
         """
         ...
 
-    def tokenize(self, text: str) -> List[int]:
+    def tokenize(self, text: str) -> list[int]:
         """
         Tokenize text into token IDs.
 
@@ -280,7 +268,7 @@ class ModelAdapter(Protocol):
         """
         ...
 
-    def detokenize(self, tokens: List[int]) -> str:
+    def detokenize(self, tokens: list[int]) -> str:
         """
         Convert token IDs back to text.
 
@@ -361,9 +349,7 @@ class BaseModelAdapter(ABC):
             RuntimeError: If the model is not loaded.
         """
         if not self._is_loaded:
-            raise RuntimeError(
-                f"Model '{self._model_id}' is not loaded. Call load_model() first."
-            )
+            raise RuntimeError(f"Model '{self._model_id}' is not loaded. Call load_model() first.")
 
     @abstractmethod
     def load_model(self, path: str) -> None:
@@ -376,15 +362,11 @@ class BaseModelAdapter(ABC):
         ...
 
     @abstractmethod
-    def generate(
-        self, prompt: str, config: "GenerationConfig"
-    ) -> Iterator["Token"]:
+    def generate(self, prompt: str, config: GenerationConfig) -> Iterator[Token]:
         """Generate tokens from a prompt."""
         ...
 
-    def generate_batch(
-        self, prompts: List[str], config: "GenerationConfig"
-    ) -> List[List["Token"]]:
+    def generate_batch(self, prompts: list[str], config: GenerationConfig) -> list[list[Token]]:
         """
         Generate tokens for multiple prompts.
 
@@ -394,34 +376,32 @@ class BaseModelAdapter(ABC):
         return [list(self.generate(prompt, config)) for prompt in prompts]
 
     @abstractmethod
-    def get_logits(self, tokens: List[int]) -> "Logits":
+    def get_logits(self, tokens: list[int]) -> Logits:
         """Get logits for a token sequence."""
         ...
 
     @abstractmethod
-    def verify(
-        self, draft_tokens: List["Token"]
-    ) -> Tuple[List["Token"], int]:
+    def verify(self, draft_tokens: list[Token]) -> tuple[list[Token], int]:
         """Verify draft tokens for speculative decoding."""
         ...
 
     @abstractmethod
-    def get_kv_cache(self) -> "KVCache":
+    def get_kv_cache(self) -> KVCache:
         """Get the current KV cache."""
         ...
 
     @abstractmethod
-    def set_kv_cache(self, cache: "KVCache") -> None:
+    def set_kv_cache(self, cache: KVCache) -> None:
         """Set the KV cache."""
         ...
 
     @abstractmethod
-    def tokenize(self, text: str) -> List[int]:
+    def tokenize(self, text: str) -> list[int]:
         """Tokenize text into token IDs."""
         ...
 
     @abstractmethod
-    def detokenize(self, tokens: List[int]) -> str:
+    def detokenize(self, tokens: list[int]) -> str:
         """Convert token IDs back to text."""
         ...
 

@@ -11,6 +11,7 @@ High consensus (high overlap) indicates high confidence, while low consensus
 
 from __future__ import annotations
 
+import math
 from typing import TYPE_CHECKING
 
 from air.interfaces.router import BaseConfidenceScorer
@@ -147,6 +148,7 @@ class TopKDisagreementScorer(BaseConfidenceScorer):
             # Get top-k probabilities for each batch element
             vocab_size = probs.shape[-1]
             effective_k = min(self._k, vocab_size)
+            max_entropy = math.log(float(effective_k))
 
             # topk returns (values, indices)
             topk_probs, _ = torch.topk(probs, k=effective_k, dim=-1)
@@ -161,7 +163,6 @@ class TopKDisagreementScorer(BaseConfidenceScorer):
                     sample_probs_norm = sample_probs / sample_probs.sum()
                     eps = 1e-10
                     sample_entropy = -(sample_probs_norm * torch.log(sample_probs_norm + eps)).sum()
-                    max_entropy = torch.log(torch.tensor(float(effective_k)))
                     norm_entropy = sample_entropy / (max_entropy + eps)
                     confidences.append((1.0 - norm_entropy).item())
                 # Return average confidence across batch
@@ -182,7 +183,6 @@ class TopKDisagreementScorer(BaseConfidenceScorer):
 
             # Normalize entropy by max possible entropy for k items
             # Max entropy = log(k) when all k items are equally likely
-            max_entropy = torch.log(torch.tensor(float(effective_k)))
             normalized_entropy = topk_entropy / (max_entropy + eps)
 
             # Convert normalized entropy to confidence

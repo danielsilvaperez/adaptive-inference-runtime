@@ -24,20 +24,20 @@ Example:
     ...     def should_escalate(self, state): ...
 """
 
-from air.interfaces.router import (
-    Router,
-    ConfidenceScorer,
-    BaseRouter,
-    BaseConfidenceScorer,
-)
 from air.interfaces.adapter import (
-    ModelAdapter,
     BaseModelAdapter,
+    ModelAdapter,
 )
 from air.interfaces.compressor import (
-    KVCompressor,
     BaseKVCompressor,
     CompressionResult,
+    KVCompressor,
+)
+from air.interfaces.router import (
+    BaseConfidenceScorer,
+    BaseRouter,
+    ConfidenceScorer,
+    Router,
 )
 
 __all__ = [

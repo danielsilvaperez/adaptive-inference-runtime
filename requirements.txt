@@ -12,3 +12,6 @@ pyyaml>=6.0
 
 # Progress bars
 tqdm>=4.65.0
+
+# Backported typing utilities
+typing_extensions>=4.6.0

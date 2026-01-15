@@ -11,7 +11,7 @@ Key Components:
     - LogprobSlopeTracker: Tracks log probability slopes for confidence estimation
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from air.routing.confidence import EntropyScorer, TopKDisagreementScorer
@@ -24,7 +24,7 @@ __all__ = [
 ]
 
 
-def __getattr__(name: str):
+def __getattr__(name: str) -> Any:
     """Lazy import mechanism for routing components."""
     if name in ("EntropyScorer", "TopKDisagreementScorer"):
         from air.routing import confidence

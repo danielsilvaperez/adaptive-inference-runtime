@@ -6,14 +6,12 @@ import logging
 import tempfile
 from pathlib import Path
 
-import pytest
-
 from air.utils.logging import (
     ColoredFormatter,
-    get_logger,
-    setup_logging,
-    set_level,
     add_file_handler,
+    get_logger,
+    set_level,
+    setup_logging,
 )
 
 

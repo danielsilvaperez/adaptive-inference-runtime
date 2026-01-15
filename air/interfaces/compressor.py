@@ -14,13 +14,7 @@ Compression strategies include:
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import (
-    TYPE_CHECKING,
-    Dict,
-    Any,
-    Protocol,
-    runtime_checkable,
-)
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
     from air.types import CompressionConfig, KVCache
@@ -60,7 +54,7 @@ class KVCompressor(Protocol):
         ...                    for t in cache.get_kv(layer))
     """
 
-    def compress(self, cache: "KVCache") -> "KVCache":
+    def compress(self, cache: KVCache) -> KVCache:
         """
         Compress the KV cache according to the configured policy.
 
@@ -82,7 +76,7 @@ class KVCompressor(Protocol):
         """
         ...
 
-    def evict(self, cache: "KVCache", target_size: int) -> "KVCache":
+    def evict(self, cache: KVCache, target_size: int) -> KVCache:
         """
         Evict tokens from the cache to reach a target size.
 
@@ -111,7 +105,7 @@ class KVCompressor(Protocol):
         """
         ...
 
-    def get_memory_usage(self, cache: "KVCache") -> int:
+    def get_memory_usage(self, cache: KVCache) -> int:
         """
         Get the current memory usage of the cache in bytes.
 
@@ -157,22 +151,22 @@ class BaseKVCompressor(ABC):
         ...         return self.evict(cache, target)
     """
 
-    def __init__(self, config: "CompressionConfig") -> None:
+    def __init__(self, config: CompressionConfig) -> None:
         """
         Initialize the compressor with configuration.
 
         Args:
             config: Compression configuration settings.
         """
-        self._config: "CompressionConfig" = config
+        self._config: CompressionConfig = config
 
     @property
-    def config(self) -> "CompressionConfig":
+    def config(self) -> CompressionConfig:
         """Get the compression configuration."""
         return self._config
 
     @config.setter
-    def config(self, value: "CompressionConfig") -> None:
+    def config(self, value: CompressionConfig) -> None:
         """Set the compression configuration."""
         self._config = value
 
@@ -181,7 +175,7 @@ class BaseKVCompressor(ABC):
         """Check if compression is enabled."""
         return self._config.enabled
 
-    def _should_compress(self, cache: "KVCache") -> bool:
+    def _should_compress(self, cache: KVCache) -> bool:
         """
         Determine if compression should be applied.
 
@@ -198,7 +192,7 @@ class BaseKVCompressor(ABC):
         target_size = int(cache.max_size * self._config.target_ratio)
         return cache.size > target_size
 
-    def get_memory_usage(self, cache: "KVCache") -> int:
+    def get_memory_usage(self, cache: KVCache) -> int:
         """
         Get the memory usage of a cache.
 
@@ -229,7 +223,7 @@ class BaseKVCompressor(ABC):
 
         return kv_size_per_layer * cache.num_layers
 
-    def get_compression_stats(self, original: "KVCache", compressed: "KVCache") -> Dict[str, Any]:
+    def get_compression_stats(self, original: KVCache, compressed: KVCache) -> dict[str, Any]:
         """
         Get statistics about a compression operation.
 
@@ -255,7 +249,7 @@ class BaseKVCompressor(ABC):
         }
 
     @abstractmethod
-    def compress(self, cache: "KVCache") -> "KVCache":
+    def compress(self, cache: KVCache) -> KVCache:
         """
         Compress the KV cache.
 
@@ -268,7 +262,7 @@ class BaseKVCompressor(ABC):
         ...
 
     @abstractmethod
-    def evict(self, cache: "KVCache", target_size: int) -> "KVCache":
+    def evict(self, cache: KVCache, target_size: int) -> KVCache:
         """
         Evict tokens to reach target size.
 
@@ -309,7 +303,7 @@ class CompressionResult:
 
     def __init__(
         self,
-        cache: "KVCache",
+        cache: KVCache,
         original_size: int,
         compressed_size: int,
         memory_saved: int,
@@ -348,7 +342,7 @@ class CompressionResult:
             return 0.0
         return self.tokens_evicted / self.original_size
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary representation."""
         return {
             "original_size": self.original_size,
