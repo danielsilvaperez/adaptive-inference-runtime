@@ -18,8 +18,9 @@ from the model. Not all inference backends provide access to attention weights.
 
 from __future__ import annotations
 
+from typing import Optional
+
 import torch
-from typing import Dict, Optional, Tuple
 
 from air.interfaces.router import BaseConfidenceScorer
 
@@ -115,7 +116,7 @@ class AttentionInstabilityScorer(BaseConfidenceScorer):
             raise ValueError(f"sensitivity must be in [0.0, 1.0], got {value}")
         self._sensitivity = value
 
-    def score(self, logits: "torch.Tensor") -> float:
+    def score(self, logits: torch.Tensor) -> float:
         """
         Compute confidence score from logits.
 
@@ -130,14 +131,15 @@ class AttentionInstabilityScorer(BaseConfidenceScorer):
         Returns:
             A default confidence score of 0.5 (neutral confidence).
         """
+        _ = logits
         # This scorer needs attention weights, not logits
         # Return neutral score as fallback
         return 0.5
 
     def score_from_attention(
         self,
-        attention_weights: "torch.Tensor",
-        layer_indices: Optional[Tuple[int, ...]] = None,
+        attention_weights: torch.Tensor,
+        layer_indices: Optional[tuple[int, ...]] = None,
     ) -> float:
         """
         Compute confidence score from attention weights.
@@ -205,7 +207,7 @@ class AttentionInstabilityScorer(BaseConfidenceScorer):
 
         return float(confidence)
 
-    def _compute_instability(self, attention_weights: "torch.Tensor") -> float:
+    def _compute_instability(self, attention_weights: torch.Tensor) -> float:
         """
         Compute the overall instability metric from attention weights.
 
@@ -237,7 +239,7 @@ class AttentionInstabilityScorer(BaseConfidenceScorer):
 
         return float(instability)
 
-    def _compute_layer_variance(self, attention_weights: "torch.Tensor") -> float:
+    def _compute_layer_variance(self, attention_weights: torch.Tensor) -> float:
         """
         Compute variance in attention patterns across layers.
 
@@ -271,13 +273,11 @@ class AttentionInstabilityScorer(BaseConfidenceScorer):
 
         # Normalize to a reasonable range using empirical scaling factor
         # Empirically, variance rarely exceeds 0.1 for normalized attention
-        normalized_variance = torch.clamp(
-            mean_variance * _VARIANCE_NORMALIZATION_FACTOR, 0.0, 1.0
-        )
+        normalized_variance = torch.clamp(mean_variance * _VARIANCE_NORMALIZATION_FACTOR, 0.0, 1.0)
 
         return float(normalized_variance)
 
-    def _compute_head_variance(self, attention_weights: "torch.Tensor") -> float:
+    def _compute_head_variance(self, attention_weights: torch.Tensor) -> float:
         """
         Compute variance in attention patterns across heads within layers.
 
@@ -306,13 +306,11 @@ class AttentionInstabilityScorer(BaseConfidenceScorer):
         mean_variance = head_variance.mean()
 
         # Normalize to a reasonable range using empirical scaling factor
-        normalized_variance = torch.clamp(
-            mean_variance * _VARIANCE_NORMALIZATION_FACTOR, 0.0, 1.0
-        )
+        normalized_variance = torch.clamp(mean_variance * _VARIANCE_NORMALIZATION_FACTOR, 0.0, 1.0)
 
         return float(normalized_variance)
 
-    def _compute_head_stability(self, attention_weights: "torch.Tensor") -> float:
+    def _compute_head_stability(self, attention_weights: torch.Tensor) -> float:
         """
         Compute stability for a single layer by analyzing head agreement.
 
@@ -335,17 +333,13 @@ class AttentionInstabilityScorer(BaseConfidenceScorer):
         mean_variance = head_variance.mean()
 
         # Convert variance to confidence using empirical scaling factor
-        normalized_variance = torch.clamp(
-            mean_variance * _VARIANCE_NORMALIZATION_FACTOR, 0.0, 1.0
-        )
+        normalized_variance = torch.clamp(mean_variance * _VARIANCE_NORMALIZATION_FACTOR, 0.0, 1.0)
         scaled_variance = normalized_variance * (1.0 + self._sensitivity)
         confidence = 1.0 / (1.0 + scaled_variance)
 
         return float(confidence)
 
-    def compute_layer_statistics(
-        self, attention_weights: "torch.Tensor"
-    ) -> Dict[str, float]:
+    def compute_layer_statistics(self, attention_weights: torch.Tensor) -> dict[str, float]:
         """
         Compute detailed statistics about attention instability per layer.
 

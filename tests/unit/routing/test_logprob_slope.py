@@ -306,7 +306,7 @@ class TestLogprobSlopeTrackerIntegration:
         tracker = LogprobSlopeTracker(window_size=5)
 
         # First generation
-        for i in range(5):
+        for _i in range(5):
             logits = torch.randn(1, 100)
             tracker.score(logits)
 
@@ -317,7 +317,7 @@ class TestLogprobSlopeTrackerIntegration:
         assert tracker.history_length == 0
 
         # Second generation
-        for i in range(3):
+        for _i in range(3):
             logits = torch.randn(1, 100)
             tracker.score(logits)
 

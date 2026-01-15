@@ -210,9 +210,7 @@ class H2OCompressor(BaseKVCompressor):
         # Create new cache with only the selected tokens
         return self._create_evicted_cache(cache, tokens_to_keep)
 
-    def _select_tokens_to_keep(
-        self, cache: KVCache, target_size: int
-    ) -> list[int]:
+    def _select_tokens_to_keep(self, cache: KVCache, target_size: int) -> list[int]:
         """
         Select which token positions to keep based on H2O policy.
 
@@ -288,9 +286,7 @@ class H2OCompressor(BaseKVCompressor):
             return evictable_positions[:count]
 
         # Sort positions by score (descending) and take top count
-        sorted_positions = sorted(
-            global_scores.items(), key=lambda x: x[1], reverse=True
-        )
+        sorted_positions = sorted(global_scores.items(), key=lambda x: x[1], reverse=True)
 
         return [pos for pos, _ in sorted_positions[:count]]
 
@@ -322,18 +318,14 @@ class H2OCompressor(BaseKVCompressor):
 
             # Filter to evictable positions
             evictable_scores = {
-                pos: score
-                for pos, score in layer_scores.items()
-                if pos in evictable_positions
+                pos: score for pos, score in layer_scores.items() if pos in evictable_positions
             }
 
             if not evictable_scores:
                 continue
 
             # Sort by score and take top heavy_hitter_ratio
-            sorted_positions = sorted(
-                evictable_scores.items(), key=lambda x: x[1], reverse=True
-            )
+            sorted_positions = sorted(evictable_scores.items(), key=lambda x: x[1], reverse=True)
 
             # Keep top heavy_hitter_ratio of tokens per layer
             keep_count = int(len(sorted_positions) * self._config.heavy_hitter_ratio)
@@ -352,16 +344,14 @@ class H2OCompressor(BaseKVCompressor):
         # If we have more than needed, prioritize by global score
         if len(all_hitters) > count:
             # Aggregate global scores for ranking
-            global_scores = {}
+            global_scores: dict[int, float] = {}
             for layer_scores in self._attention_scores.values():
                 for pos, score in layer_scores.items():
                     if pos in all_hitters:
                         global_scores[pos] = global_scores.get(pos, 0.0) + score
 
             # Sort by global score and take top count
-            sorted_hitters = sorted(
-                global_scores.items(), key=lambda x: x[1], reverse=True
-            )
+            sorted_hitters = sorted(global_scores.items(), key=lambda x: x[1], reverse=True)
             return [pos for pos, _ in sorted_hitters[:count]]
 
         # If we have fewer than needed, add more based on global scores
@@ -370,15 +360,15 @@ class H2OCompressor(BaseKVCompressor):
             additional_needed = count - len(all_hitters)
 
             # Get global scores for remaining positions
-            global_scores = {}
+            remaining_scores: dict[int, float] = {}
             for layer_scores in self._attention_scores.values():
                 for pos, score in layer_scores.items():
                     if pos in remaining_positions:
-                        global_scores[pos] = global_scores.get(pos, 0.0) + score
+                        remaining_scores[pos] = remaining_scores.get(pos, 0.0) + score
 
-            if global_scores:
+            if remaining_scores:
                 sorted_remaining = sorted(
-                    global_scores.items(), key=lambda x: x[1], reverse=True
+                    remaining_scores.items(), key=lambda x: x[1], reverse=True
                 )
                 additional = [pos for pos, _ in sorted_remaining[:additional_needed]]
             else:

@@ -76,10 +76,10 @@ class TestAttentionInstabilityScorer:
         # Create very stable attention (all layers similar)
         # Shape: (num_layers=32, num_heads=32, seq_len=64, seq_len=64)
         num_layers, num_heads, seq_len = 32, 32, 64
-        
+
         # Create a base attention pattern
         base_attn = torch.softmax(torch.randn(seq_len, seq_len), dim=-1)
-        
+
         # Repeat across all layers and heads with tiny noise
         attention_weights = base_attn.unsqueeze(0).unsqueeze(0).repeat(num_layers, num_heads, 1, 1)
         attention_weights = attention_weights + torch.randn_like(attention_weights) * 0.001
@@ -93,11 +93,11 @@ class TestAttentionInstabilityScorer:
 
         # Create highly variable attention patterns where each layer is completely different
         num_layers, num_heads, seq_len = 16, 8, 32
-        
+
         # First create a stable baseline
         stable_attn = torch.ones(num_layers, num_heads, seq_len, seq_len) / seq_len
         stable_score = scorer.score_from_attention(stable_attn)
-        
+
         # Now create unstable attention - each layer focuses on completely different tokens
         unstable_attn = torch.zeros(num_layers, num_heads, seq_len, seq_len)
         for i in range(num_layers):
@@ -106,12 +106,15 @@ class TestAttentionInstabilityScorer:
             unstable_attn[i, :, :, focus_token] = 1.0  # All weight on one token per layer
 
         unstable_score = scorer.score_from_attention(unstable_attn)
-        
+
         # Unstable attention should have lower confidence than stable
-        assert unstable_score < stable_score, \
-            f"Unstable attention ({unstable_score}) should have lower confidence than stable ({stable_score})"
+        assert (
+            unstable_score < stable_score
+        ), f"Unstable attention ({unstable_score}) should have lower confidence than stable ({stable_score})"
         # And should be reasonably low (but not necessarily below 0.6 due to normalization)
-        assert unstable_score < 0.85, f"Unstable attention should show reduced confidence, got {unstable_score}"
+        assert (
+            unstable_score < 0.85
+        ), f"Unstable attention should show reduced confidence, got {unstable_score}"
 
     def test_score_with_nan_values(self):
         """Test handling of NaN values in attention weights."""
@@ -159,7 +162,7 @@ class TestAttentionInstabilityScorer:
         assert set(stats.keys()) == expected_keys
 
         # Check all values are valid floats
-        for key, value in stats.items():
+        for _key, value in stats.items():
             assert isinstance(value, float)
             assert not math.isnan(value) and not math.isinf(value)
 
@@ -180,9 +183,7 @@ class TestAttentionInstabilityScorer:
         score_all = scorer.score_from_attention(attn)
 
         # Score with only stable layers
-        score_stable = scorer.score_from_attention(
-            attn, layer_indices=(20, 21, 22, 23, 24)
-        )
+        score_stable = scorer.score_from_attention(attn, layer_indices=(20, 21, 22, 23, 24))
 
         # Both scores should be valid
         assert score_all > 0.0

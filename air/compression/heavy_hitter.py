@@ -114,9 +114,7 @@ class HeavyHitterCompressor(BaseKVCompressor):
             total_score += layer_scores.get(token_position, 0.0)
         return total_score
 
-    def _get_eviction_candidates(
-        self, cache: KVCache, target_size: int
-    ) -> list[int]:
+    def _get_eviction_candidates(self, cache: KVCache, target_size: int) -> list[int]:
         """
         Determine which tokens should be evicted based on attention scores.
 
@@ -140,9 +138,7 @@ class HeavyHitterCompressor(BaseKVCompressor):
         # Build list of (position, cumulative_attention) for evictable tokens
         # Recent tokens (last protected_count) are never evicted
         evictable_positions = range(0, current_size - protected_count)
-        token_scores = [
-            (pos, self.get_cumulative_attention(pos)) for pos in evictable_positions
-        ]
+        token_scores = [(pos, self.get_cumulative_attention(pos)) for pos in evictable_positions]
 
         # Sort by attention score (ascending) - lowest attention first
         token_scores.sort(key=lambda x: x[1])
@@ -232,8 +228,7 @@ class HeavyHitterCompressor(BaseKVCompressor):
         self._update_scores_after_eviction(eviction_candidates)
 
         logger.debug(
-            f"Evicted {len(eviction_candidates)} tokens, "
-            f"new cache size: {new_cache.size}"
+            f"Evicted {len(eviction_candidates)} tokens, " f"new cache size: {new_cache.size}"
         )
 
         return new_cache
@@ -281,9 +276,7 @@ class HeavyHitterCompressor(BaseKVCompressor):
         self._attention_scores.clear()
         logger.debug("Reset attention scores for heavy hitter tracking")
 
-    def get_compression_stats(
-        self, original: KVCache, compressed: KVCache
-    ) -> dict[str, Any]:
+    def get_compression_stats(self, original: KVCache, compressed: KVCache) -> dict[str, Any]:
         """
         Get detailed statistics about a compression operation.
 
@@ -301,9 +294,7 @@ class HeavyHitterCompressor(BaseKVCompressor):
 
         # Add heavy hitter specific stats
         if self._attention_scores:
-            all_scores = [
-                self.get_cumulative_attention(pos) for pos in range(original.size)
-            ]
+            all_scores = [self.get_cumulative_attention(pos) for pos in range(original.size)]
             if all_scores:
                 stats["avg_attention_score"] = sum(all_scores) / len(all_scores)
                 stats["max_attention_score"] = max(all_scores)
