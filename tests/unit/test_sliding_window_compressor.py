@@ -16,6 +16,9 @@ import torch
 from air.compression.sliding_window import SlidingWindowCompressor
 from air.types import CompressionConfig
 
+# Test constants
+COMPRESSION_RATIO_TOLERANCE = 0.1  # Tolerance for memory compression ratio tests
+
 
 class MockKVCache:
     """
@@ -346,8 +349,8 @@ class TestSlidingWindowLongSequences:
         expected_ratio = 512 / 5000
         actual_ratio = compressed_memory / original_memory
 
-        # Allow some tolerance due to estimation
-        assert abs(actual_ratio - expected_ratio) < 0.1
+        # Allow some tolerance due to memory usage estimation
+        assert abs(actual_ratio - expected_ratio) < COMPRESSION_RATIO_TOLERANCE
 
     def test_iterative_compression(self):
         """Test applying compression multiple times (simulating generation)."""
