@@ -16,16 +16,10 @@ from __future__ import annotations
 
 import json
 import time
-from dataclasses import dataclass, field
+from collections.abc import Sequence
+from dataclasses import dataclass
 from enum import Enum
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Dict,
-    List,
-    Optional,
-    Sequence,
-)
+from typing import Any
 
 from air.types import (
     CompressionConfig,
@@ -33,9 +27,6 @@ from air.types import (
     KVCache,
     Token,
 )
-
-if TYPE_CHECKING:
-    pass
 
 
 class ModelTier(str, Enum):
@@ -128,7 +119,7 @@ class TokenStats:
             return 0.0
         return self.speculation_acceptances / self.speculation_attempts
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary representation."""
         return {
             "total_tokens": self.total_tokens,
@@ -144,7 +135,7 @@ class TokenStats:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "TokenStats":
+    def from_dict(cls, data: dict[str, Any]) -> TokenStats:
         """Create from dictionary representation."""
         stats = cls()
         stats.total_tokens = data.get("total_tokens", 0)
@@ -199,10 +190,10 @@ class InferenceState:
     def __init__(
         self,
         model_id: str,
-        generation_config: Optional[GenerationConfig] = None,
-        compression_config: Optional[CompressionConfig] = None,
+        generation_config: GenerationConfig | None = None,
+        compression_config: CompressionConfig | None = None,
         model_tier: ModelTier = ModelTier.SMALL,
-        kv_cache: Optional[KVCache] = None,
+        kv_cache: KVCache | None = None,
         max_history_length: int = 10000,
     ) -> None:
         """
@@ -218,20 +209,16 @@ class InferenceState:
         """
         self._model_id: str = model_id
         self._model_tier: ModelTier = model_tier
-        self._generation_config: GenerationConfig = (
-            generation_config or GenerationConfig()
-        )
-        self._compression_config: CompressionConfig = (
-            compression_config or CompressionConfig()
-        )
-        self._kv_cache: Optional[KVCache] = kv_cache
-        self._token_history: List[Token] = []
+        self._generation_config: GenerationConfig = generation_config or GenerationConfig()
+        self._compression_config: CompressionConfig = compression_config or CompressionConfig()
+        self._kv_cache: KVCache | None = kv_cache
+        self._token_history: list[Token] = []
         self._max_history_length: int = max_history_length
         self._stats: TokenStats = TokenStats()
         self._created_at: float = time.time()
         self._last_updated_at: float = self._created_at
-        self._metadata: Dict[str, Any] = {}
-        self._logprob_window: List[float] = []
+        self._metadata: dict[str, Any] = {}
+        self._logprob_window: list[float] = []
         self._logprob_window_size: int = 20
 
     # =========================================================================
@@ -259,7 +246,7 @@ class InferenceState:
         return self._compression_config
 
     @property
-    def kv_cache(self) -> Optional[KVCache]:
+    def kv_cache(self) -> KVCache | None:
         """Get the current KV cache reference."""
         return self._kv_cache
 
@@ -289,12 +276,12 @@ class InferenceState:
         return self._last_updated_at
 
     @property
-    def metadata(self) -> Dict[str, Any]:
+    def metadata(self) -> dict[str, Any]:
         """Get custom metadata dictionary."""
         return self._metadata
 
     @property
-    def recent_logprobs(self) -> List[float]:
+    def recent_logprobs(self) -> list[float]:
         """Get recent log probabilities for slope calculation."""
         return self._logprob_window.copy()
 
@@ -309,16 +296,16 @@ class InferenceState:
         return self._model_tier == ModelTier.LARGE
 
     @property
-    def last_token(self) -> Optional[Token]:
+    def last_token(self) -> Token | None:
         """Get the most recently generated token."""
         if self._token_history:
             return self._token_history[-1]
         return None
 
     @property
-    def last_n_tokens(self) -> List[Token]:
+    def last_n_tokens(self) -> list[Token]:
         """Get the last N tokens (N = logprob_window_size)."""
-        return self._token_history[-self._logprob_window_size:]
+        return self._token_history[-self._logprob_window_size :]
 
     # =========================================================================
     # State Update Methods
@@ -327,11 +314,11 @@ class InferenceState:
     def update(
         self,
         *,
-        model_id: Optional[str] = None,
-        model_tier: Optional[ModelTier] = None,
-        generation_config: Optional[GenerationConfig] = None,
-        compression_config: Optional[CompressionConfig] = None,
-        kv_cache: Optional[KVCache] = None,
+        model_id: str | None = None,
+        model_tier: ModelTier | None = None,
+        generation_config: GenerationConfig | None = None,
+        compression_config: CompressionConfig | None = None,
+        kv_cache: KVCache | None = None,
     ) -> None:
         """
         Update state with new values.
@@ -369,7 +356,7 @@ class InferenceState:
 
         # Maintain history size limit
         if len(self._token_history) > self._max_history_length:
-            self._token_history = self._token_history[-self._max_history_length:]
+            self._token_history = self._token_history[-self._max_history_length :]
 
         # Update logprob window
         self._logprob_window.append(token.logprob)
@@ -394,7 +381,7 @@ class InferenceState:
         self,
         model_id: str,
         model_tier: ModelTier,
-        kv_cache: Optional[KVCache] = None,
+        kv_cache: KVCache | None = None,
         reason: str = "",
     ) -> None:
         """
@@ -423,19 +410,21 @@ class InferenceState:
         # Record transition in metadata
         if "transitions" not in self._metadata:
             self._metadata["transitions"] = []
-        self._metadata["transitions"].append({
-            "from_model": old_model_id,
-            "from_tier": old_tier.value,
-            "to_model": model_id,
-            "to_tier": model_tier.value,
-            "at_token": self.token_count,
-            "reason": reason,
-            "timestamp": time.time(),
-        })
+        self._metadata["transitions"].append(
+            {
+                "from_model": old_model_id,
+                "from_tier": old_tier.value,
+                "to_model": model_id,
+                "to_tier": model_tier.value,
+                "at_token": self.token_count,
+                "reason": reason,
+                "timestamp": time.time(),
+            }
+        )
 
         self._last_updated_at = time.time()
 
-    def set_kv_cache(self, kv_cache: Optional[KVCache]) -> None:
+    def set_kv_cache(self, kv_cache: KVCache | None) -> None:
         """
         Set the KV cache reference.
 
@@ -477,7 +466,7 @@ class InferenceState:
     # Serialization Methods
     # =========================================================================
 
-    def serialize(self) -> Dict[str, Any]:
+    def serialize(self) -> dict[str, Any]:
         """
         Serialize state to a dictionary.
 
@@ -494,8 +483,7 @@ class InferenceState:
             "generation_config": self._generation_config.to_dict(),
             "compression_config": self._compression_config.to_dict(),
             "token_history": [
-                {"id": t.id, "text": t.text, "logprob": t.logprob}
-                for t in self._token_history
+                {"id": t.id, "text": t.text, "logprob": t.logprob} for t in self._token_history
             ],
             "stats": self._stats.to_dict(),
             "created_at": self._created_at,
@@ -505,7 +493,7 @@ class InferenceState:
         }
 
     @classmethod
-    def deserialize(cls, data: Dict[str, Any]) -> "InferenceState":
+    def deserialize(cls, data: dict[str, Any]) -> InferenceState:
         """
         Deserialize state from a dictionary.
 
@@ -559,7 +547,7 @@ class InferenceState:
         return json.dumps(self.serialize(), indent=2)
 
     @classmethod
-    def from_json(cls, json_str: str) -> "InferenceState":
+    def from_json(cls, json_str: str) -> InferenceState:
         """
         Deserialize state from JSON string.
 
@@ -584,7 +572,7 @@ class InferenceState:
         """
         return "".join(t.text for t in self._token_history)
 
-    def get_token_ids(self) -> List[int]:
+    def get_token_ids(self) -> list[int]:
         """
         Get list of token IDs from history.
 
@@ -593,7 +581,7 @@ class InferenceState:
         """
         return [t.id for t in self._token_history]
 
-    def clone(self) -> "InferenceState":
+    def clone(self) -> InferenceState:
         """
         Create a deep copy of the state.
 

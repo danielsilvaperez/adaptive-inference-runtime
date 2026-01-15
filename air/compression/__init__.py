@@ -9,9 +9,10 @@ Key Components:
     - HeavyHitterCompressor: Heavy hitter retention policy
     - AttentionPooling: Attention-based cache compression
     - QuantizedCache: Quantized KV cache for memory efficiency
+    - SlidingWindowCompressor: Sliding window retention policy
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from air.compression.compressor import KVCacheCompressor
@@ -29,19 +30,22 @@ __all__ = [
 ]
 
 
-def __getattr__(name: str):
+def __getattr__(name: str) -> Any:
     """Lazy import mechanism for compression components."""
     if name == "KVCacheCompressor":
         from air.compression import compressor
+
         return compressor.KVCacheCompressor
     elif name == "HeavyHitterCompressor":
         from air.compression import heavy_hitter
         return heavy_hitter.HeavyHitterCompressor
     elif name == "AttentionPooling":
         from air.compression import pooling
+
         return pooling.AttentionPooling
     elif name == "QuantizedCache":
         from air.compression import quantized
+
         return quantized.QuantizedCache
     elif name == "SlidingWindowCompressor":
         from air.compression import sliding_window

@@ -12,12 +12,9 @@ each token or span of generation based on uncertainty signals.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import (
-    TYPE_CHECKING,
-    Dict,
-    Protocol,
-    runtime_checkable,
-)
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
+
+from air.types import RoutingThresholds
 
 if TYPE_CHECKING:
     from air.state import InferenceState
@@ -63,7 +60,7 @@ class ConfidenceScorer(Protocol):
         """
         ...
 
-    def score(self, logits: "Logits") -> float:
+    def score(self, logits: Logits) -> float:
         """
         Compute a confidence score from logits.
 
@@ -111,7 +108,7 @@ class Router(Protocol):
         ...         return ModelSelection("llama-7b", combined, "High confidence")
     """
 
-    def route(self, state: "InferenceState") -> "ModelSelection":
+    def route(self, state: InferenceState) -> ModelSelection:
         """
         Make a routing decision based on current inference state.
 
@@ -134,7 +131,7 @@ class Router(Protocol):
         """
         ...
 
-    def get_confidence_scores(self, logits: "Logits") -> Dict[str, float]:
+    def get_confidence_scores(self, logits: Logits) -> dict[str, float]:
         """
         Compute all confidence scores from logits.
 
@@ -154,7 +151,7 @@ class Router(Protocol):
         """
         ...
 
-    def should_escalate(self, state: "InferenceState") -> bool:
+    def should_escalate(self, state: InferenceState) -> bool:
         """
         Determine if the model should be escalated.
 
@@ -208,23 +205,22 @@ class BaseRouter(ABC):
         """Initialize the base router."""
         from air.types import RoutingThresholds
 
-        self._scorers: Dict[str, ConfidenceScorer] = {}
+        self._scorers: dict[str, ConfidenceScorer] = {}
         self._thresholds: RoutingThresholds = RoutingThresholds()
 
     @property
-    def scorers(self) -> Dict[str, ConfidenceScorer]:
+    def scorers(self) -> dict[str, ConfidenceScorer]:
         """Get registered confidence scorers."""
         return self._scorers.copy()
 
     @property
-    def thresholds(self) -> "RoutingThresholds":
+    def thresholds(self) -> RoutingThresholds:
         """Get routing thresholds."""
-        from air.types import RoutingThresholds
 
         return self._thresholds
 
     @thresholds.setter
-    def thresholds(self, value: "RoutingThresholds") -> None:
+    def thresholds(self, value: RoutingThresholds) -> None:
         """Set routing thresholds."""
         self._thresholds = value
 
@@ -246,7 +242,7 @@ class BaseRouter(ABC):
         """
         self._scorers.pop(name, None)
 
-    def get_confidence_scores(self, logits: "Logits") -> Dict[str, float]:
+    def get_confidence_scores(self, logits: Logits) -> dict[str, float]:
         """
         Compute all confidence scores from logits.
 
@@ -258,7 +254,7 @@ class BaseRouter(ABC):
         """
         return {name: scorer.score(logits) for name, scorer in self._scorers.items()}
 
-    def combine_scores(self, scores: Dict[str, float]) -> float:
+    def combine_scores(self, scores: dict[str, float]) -> float:
         """
         Combine multiple confidence scores into a single value.
 
@@ -276,7 +272,7 @@ class BaseRouter(ABC):
         return sum(scores.values()) / len(scores)
 
     @abstractmethod
-    def route(self, state: "InferenceState") -> "ModelSelection":
+    def route(self, state: InferenceState) -> ModelSelection:
         """
         Make a routing decision based on current inference state.
 
@@ -289,7 +285,7 @@ class BaseRouter(ABC):
         ...
 
     @abstractmethod
-    def should_escalate(self, state: "InferenceState") -> bool:
+    def should_escalate(self, state: InferenceState) -> bool:
         """
         Determine if the model should be escalated.
 
@@ -327,7 +323,7 @@ class BaseConfidenceScorer(ABC):
         ...
 
     @abstractmethod
-    def score(self, logits: "Logits") -> float:
+    def score(self, logits: Logits) -> float:
         """
         Compute a confidence score from logits.
 

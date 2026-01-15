@@ -7,24 +7,26 @@ from a lightweight model to a more capable one.
 
 Key Components:
     - EntropyScorer: Token entropy-based confidence metric
+    - TopKDisagreementScorer: Top-k disagreement confidence metric
     - LogprobSlopeTracker: Tracks log probability slopes for confidence estimation
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from air.routing.confidence import EntropyScorer
+    from air.routing.confidence import EntropyScorer, TopKDisagreementScorer
     from air.routing.logprob_slope import LogprobSlopeTracker
 
 __all__ = [
     "EntropyScorer",
+    "TopKDisagreementScorer",
     "LogprobSlopeTracker",
 ]
 
 
-def __getattr__(name: str):
+def __getattr__(name: str) -> Any:
     """Lazy import mechanism for routing components."""
-    if name == "EntropyScorer":
+    if name in ("EntropyScorer", "TopKDisagreementScorer"):
         from air.routing import confidence
         return getattr(confidence, name)
     elif name == "LogprobSlopeTracker":

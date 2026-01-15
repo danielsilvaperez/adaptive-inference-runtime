@@ -14,20 +14,19 @@ Example:
 import logging
 import os
 import sys
-from datetime import datetime
 from pathlib import Path
 from typing import Optional, Union
 
 # ANSI color codes for terminal output
 COLORS = {
-    "DEBUG": "\033[36m",      # Cyan
-    "INFO": "\033[32m",       # Green
-    "WARNING": "\033[33m",    # Yellow
-    "ERROR": "\033[31m",      # Red
-    "CRITICAL": "\033[35m",   # Magenta
-    "RESET": "\033[0m",       # Reset
-    "BOLD": "\033[1m",        # Bold
-    "DIM": "\033[2m",         # Dim
+    "DEBUG": "\033[36m",  # Cyan
+    "INFO": "\033[32m",  # Green
+    "WARNING": "\033[33m",  # Yellow
+    "ERROR": "\033[31m",  # Red
+    "CRITICAL": "\033[35m",  # Magenta
+    "RESET": "\033[0m",  # Reset
+    "BOLD": "\033[1m",  # Bold
+    "DIM": "\033[2m",  # Dim
 }
 
 # Default log format
@@ -80,10 +79,7 @@ class ColoredFormatter(logging.Formatter):
 
         # Check terminal type
         term = os.environ.get("TERM", "")
-        if term in ("dumb", ""):
-            return False
-
-        return True
+        return term not in ("dumb", "")
 
     def format(self, record: logging.LogRecord) -> str:
         """
@@ -99,14 +95,10 @@ class ColoredFormatter(logging.Formatter):
             # Get color for this level
             color = COLORS.get(record.levelname, COLORS["RESET"])
             reset = COLORS["RESET"]
-            dim = COLORS["DIM"]
 
             # Colorize the level name
             original_levelname = record.levelname
             record.levelname = f"{color}{record.levelname}{reset}"
-
-            # Dim the timestamp
-            original_asctime = self.formatTime(record, self.datefmt)
 
             # Format the message
             formatted = super().format(record)
@@ -127,7 +119,7 @@ class AIRLogger(logging.Logger):
     and default configuration.
     """
 
-    def __init__(self, name: str, level: int = logging.NOTSET):
+    def __init__(self, name: str, level: int = logging.NOTSET) -> None:
         """
         Initialize the AIR logger.
 

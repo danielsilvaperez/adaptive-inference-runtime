@@ -12,7 +12,7 @@ Usage:
 
 import argparse
 import sys
-from typing import List, Optional
+from typing import Optional
 
 from air import __version__
 from air.utils.logging import get_logger, setup_logging
@@ -42,7 +42,8 @@ For more information, visit: https://github.com/danielsilva010/Adaptive-Inferenc
     )
 
     parser.add_argument(
-        "-v", "--version",
+        "-v",
+        "--version",
         action="version",
         version=f"%(prog)s {__version__}",
     )
@@ -73,23 +74,27 @@ For more information, visit: https://github.com/danielsilva010/Adaptive-Inferenc
         description="Execute inference using AIR's adaptive runtime",
     )
     run_parser.add_argument(
-        "-c", "--config",
+        "-c",
+        "--config",
         type=str,
         required=True,
         help="Path to configuration file (YAML)",
     )
     run_parser.add_argument(
-        "-m", "--model",
+        "-m",
+        "--model",
         type=str,
         help="Model identifier (overrides config)",
     )
     run_parser.add_argument(
-        "-i", "--input",
+        "-i",
+        "--input",
         type=str,
         help="Input text or path to input file",
     )
     run_parser.add_argument(
-        "-o", "--output",
+        "-o",
+        "--output",
         type=str,
         help="Path to output file",
     )
@@ -101,13 +106,15 @@ For more information, visit: https://github.com/danielsilva010/Adaptive-Inferenc
         description="Benchmark AIR performance with various configurations",
     )
     bench_parser.add_argument(
-        "-m", "--model",
+        "-m",
+        "--model",
         type=str,
         required=True,
         help="Model identifier to benchmark",
     )
     bench_parser.add_argument(
-        "-n", "--num-samples",
+        "-n",
+        "--num-samples",
         type=int,
         default=100,
         help="Number of samples to benchmark (default: 100)",
@@ -137,7 +144,8 @@ For more information, visit: https://github.com/danielsilva010/Adaptive-Inferenc
         help="Configuration action to perform",
     )
     config_parser.add_argument(
-        "-c", "--config",
+        "-c",
+        "--config",
         type=str,
         help="Path to configuration file",
     )
@@ -231,7 +239,7 @@ def handle_config(args: argparse.Namespace) -> int:
     return 0
 
 
-def main(argv: Optional[List[str]] = None) -> int:
+def main(argv: Optional[list[str]] = None) -> int:
     """
     Main entry point for the AIR CLI.
 

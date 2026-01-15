@@ -16,19 +16,16 @@ All types use proper Python type hints and are compatible with mypy.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from typing import (
     TYPE_CHECKING,
     Any,
-    Dict,
-    List,
-    Optional,
-    Protocol,
-    Tuple,
-    TypeAlias,
     NamedTuple,
+    Protocol,
     runtime_checkable,
 )
+
+from typing_extensions import TypeAlias
 
 if TYPE_CHECKING:
     import torch
@@ -108,7 +105,7 @@ class KVCache(Protocol):
         ...     def num_layers(self) -> int:
         ...         return 32
         ...
-        ...     def get_kv(self, layer: int) -> Tuple[torch.Tensor, torch.Tensor]:
+        ...     def get_kv(self, layer: int) -> tuple[torch.Tensor, torch.Tensor]:
         ...         return self._keys[layer], self._values[layer]
         ...
         ...     def set_kv(self, layer: int, keys: torch.Tensor, values: torch.Tensor):
@@ -147,7 +144,7 @@ class KVCache(Protocol):
         """
         ...
 
-    def get_kv(self, layer: int) -> Tuple["torch.Tensor", "torch.Tensor"]:
+    def get_kv(self, layer: int) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Retrieve the key and value tensors for a specific layer.
 
@@ -164,9 +161,7 @@ class KVCache(Protocol):
         """
         ...
 
-    def set_kv(
-        self, layer: int, keys: "torch.Tensor", values: "torch.Tensor"
-    ) -> None:
+    def set_kv(self, layer: int, keys: torch.Tensor, values: torch.Tensor) -> None:
         """
         Set the key and value tensors for a specific layer.
 
@@ -190,7 +185,7 @@ class KVCache(Protocol):
         """
         ...
 
-    def clone(self) -> "KVCache":
+    def clone(self) -> KVCache:
         """
         Create a deep copy of the cache.
 
@@ -238,11 +233,9 @@ class ModelSelection:
     def __post_init__(self) -> None:
         """Validate the confidence score is within valid range."""
         if not 0.0 <= self.confidence_score <= 1.0:
-            raise ValueError(
-                f"confidence_score must be in [0.0, 1.0], got {self.confidence_score}"
-            )
+            raise ValueError(f"confidence_score must be in [0.0, 1.0], got {self.confidence_score}")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """
         Convert to dictionary representation.
 
@@ -252,7 +245,7 @@ class ModelSelection:
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "ModelSelection":
+    def from_dict(cls, data: dict[str, Any]) -> ModelSelection:
         """
         Create a ModelSelection from a dictionary.
 
@@ -329,17 +322,17 @@ class RoutingThresholds:
         if self.cooldown_tokens < 0:
             raise ValueError("cooldown_tokens must be non-negative")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary representation."""
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "RoutingThresholds":
+    def from_dict(cls, data: dict[str, Any]) -> RoutingThresholds:
         """Create from dictionary representation."""
         return cls(**data)
 
     @classmethod
-    def conservative(cls) -> "RoutingThresholds":
+    def conservative(cls) -> RoutingThresholds:
         """
         Create conservative thresholds (rarely escalate to large model).
 
@@ -355,7 +348,7 @@ class RoutingThresholds:
         )
 
     @classmethod
-    def balanced(cls) -> "RoutingThresholds":
+    def balanced(cls) -> RoutingThresholds:
         """
         Create balanced thresholds (default behavior).
 
@@ -364,7 +357,7 @@ class RoutingThresholds:
         return cls()  # Uses default values
 
     @classmethod
-    def aggressive(cls) -> "RoutingThresholds":
+    def aggressive(cls) -> RoutingThresholds:
         """
         Create aggressive thresholds (escalate more often).
 
@@ -437,8 +430,8 @@ class GenerationConfig:
     repetition_penalty: float = 1.0
     presence_penalty: float = 0.0
     frequency_penalty: float = 0.0
-    stop_sequences: List[str] = field(default_factory=list)
-    seed: Optional[int] = None
+    stop_sequences: list[str] = field(default_factory=list)
+    seed: int | None = None
 
     def __post_init__(self) -> None:
         """Validate generation parameters."""
@@ -459,12 +452,12 @@ class GenerationConfig:
         if not -2.0 <= self.frequency_penalty <= 2.0:
             raise ValueError("frequency_penalty must be in [-2.0, 2.0]")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary representation."""
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "GenerationConfig":
+    def from_dict(cls, data: dict[str, Any]) -> GenerationConfig:
         """Create from dictionary representation."""
         return cls(**data)
 
@@ -473,12 +466,12 @@ class GenerationConfig:
         return json.dumps(self.to_dict())
 
     @classmethod
-    def from_json(cls, json_str: str) -> "GenerationConfig":
+    def from_json(cls, json_str: str) -> GenerationConfig:
         """Create from JSON string."""
         return cls.from_dict(json.loads(json_str))
 
     @classmethod
-    def greedy(cls, max_tokens: int = 512) -> "GenerationConfig":
+    def greedy(cls, max_tokens: int = 512) -> GenerationConfig:
         """
         Create a greedy (deterministic) generation config.
 
@@ -494,7 +487,7 @@ class GenerationConfig:
     @classmethod
     def sampling(
         cls, max_tokens: int = 512, temperature: float = 0.7, top_p: float = 0.9
-    ) -> "GenerationConfig":
+    ) -> GenerationConfig:
         """
         Create a standard sampling config with nucleus sampling.
 
@@ -583,7 +576,7 @@ class CompressionConfig:
         if self.protected_token_count < 0:
             raise ValueError("protected_token_count must be non-negative")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary representation."""
         result = asdict(self)
         # Remove private attributes
@@ -591,24 +584,30 @@ class CompressionConfig:
         return result
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "CompressionConfig":
+    def from_dict(cls, data: dict[str, Any]) -> CompressionConfig:
         """Create from dictionary representation."""
         # Filter out any unknown keys
         valid_keys = {
-            "enabled", "target_ratio", "eviction_policy", "sliding_window_size",
-            "heavy_hitter_ratio", "quantize_kv", "min_tokens_before_compression",
-            "per_layer_policy", "protected_token_count"
+            "enabled",
+            "target_ratio",
+            "eviction_policy",
+            "sliding_window_size",
+            "heavy_hitter_ratio",
+            "quantize_kv",
+            "min_tokens_before_compression",
+            "per_layer_policy",
+            "protected_token_count",
         }
         filtered_data = {k: v for k, v in data.items() if k in valid_keys}
         return cls(**filtered_data)
 
     @classmethod
-    def disabled(cls) -> "CompressionConfig":
+    def disabled(cls) -> CompressionConfig:
         """Create a disabled compression config."""
         return cls(enabled=False)
 
     @classmethod
-    def conservative(cls) -> "CompressionConfig":
+    def conservative(cls) -> CompressionConfig:
         """
         Create conservative compression settings.
 
@@ -623,7 +622,7 @@ class CompressionConfig:
         )
 
     @classmethod
-    def balanced(cls) -> "CompressionConfig":
+    def balanced(cls) -> CompressionConfig:
         """
         Create balanced compression settings.
 
@@ -632,7 +631,7 @@ class CompressionConfig:
         return cls()  # Uses default values
 
     @classmethod
-    def aggressive(cls) -> "CompressionConfig":
+    def aggressive(cls) -> CompressionConfig:
         """
         Create aggressive compression settings.
 

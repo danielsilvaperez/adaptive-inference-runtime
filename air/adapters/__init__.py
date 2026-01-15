@@ -11,7 +11,7 @@ Key Components:
     - VLLMAdapter: Adapter for vLLM backend
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from air.adapters.base import ModelAdapter
@@ -25,15 +25,18 @@ __all__ = [
 ]
 
 
-def __getattr__(name: str):
+def __getattr__(name: str) -> Any:
     """Lazy import mechanism for adapter components."""
     if name == "ModelAdapter":
         from air.adapters import base
+
         return base.ModelAdapter
     elif name == "HuggingFaceAdapter":
         from air.adapters import huggingface
+
         return huggingface.HuggingFaceAdapter
     elif name == "VLLMAdapter":
         from air.adapters import vllm
+
         return vllm.VLLMAdapter
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

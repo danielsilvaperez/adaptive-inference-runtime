@@ -10,7 +10,7 @@ Key Components:
     - TokenVerifier: Verifies draft tokens against target model
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from air.speculation.decoder import SpeculativeDecoder
@@ -24,15 +24,18 @@ __all__ = [
 ]
 
 
-def __getattr__(name: str):
+def __getattr__(name: str) -> Any:
     """Lazy import mechanism for speculation components."""
     if name == "SpeculativeDecoder":
         from air.speculation import decoder
+
         return decoder.SpeculativeDecoder
     elif name == "DraftModel":
         from air.speculation import draft
+
         return draft.DraftModel
     elif name == "TokenVerifier":
         from air.speculation import verifier
+
         return verifier.TokenVerifier
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
