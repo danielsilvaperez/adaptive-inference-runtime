@@ -39,8 +39,6 @@ class TestAttentionInstabilityScorer:
 
     def test_invalid_sensitivity_raises_error(self):
         """Test that invalid sensitivity values raise ValueError."""
-        import pytest
-
         with pytest.raises(ValueError, match="sensitivity must be in"):
             AttentionInstabilityScorer(sensitivity=-0.1)
 
@@ -49,8 +47,6 @@ class TestAttentionInstabilityScorer:
 
     def test_invalid_variance_aggregation(self):
         """Test that invalid aggregation method raises ValueError."""
-        import pytest
-
         with pytest.raises(ValueError, match="variance_aggregation must be one of"):
             AttentionInstabilityScorer(variance_aggregation="invalid")
 
@@ -61,7 +57,6 @@ class TestAttentionInstabilityScorer:
 
     def test_score_from_logits_returns_default(self):
         """Test that score() returns default value since this scorer needs attention weights."""
-        import torch
 
         scorer = AttentionInstabilityScorer()
         logits = torch.randn(10, 50000)  # (seq_len, vocab_size)
@@ -72,7 +67,6 @@ class TestAttentionInstabilityScorer:
 
     def test_stable_attention_high_confidence(self):
         """Test that stable attention patterns yield high confidence."""
-        import torch
 
         scorer = AttentionInstabilityScorer(sensitivity=0.5)
 
@@ -118,7 +112,6 @@ class TestAttentionInstabilityScorer:
 
     def test_score_with_nan_values(self):
         """Test handling of NaN values in attention weights."""
-        import torch
 
         scorer = AttentionInstabilityScorer()
 
@@ -132,7 +125,6 @@ class TestAttentionInstabilityScorer:
 
     def test_score_from_attention_with_inf(self):
         """Test scorer handles infinite values gracefully."""
-        import torch
 
         scorer = AttentionInstabilityScorer()
 
@@ -146,7 +138,6 @@ class TestAttentionInstabilityScorer:
     def test_layer_statistics(self):
         """Test detailed layer statistics computation."""
         import math
-        import torch
 
         scorer = AttentionInstabilityScorer()
 
@@ -173,7 +164,6 @@ class TestAttentionInstabilityScorer:
 
     def test_score_from_attention_with_layer_selection(self):
         """Test that layer_indices parameter works correctly."""
-        import torch
 
         scorer = AttentionInstabilityScorer()
 
@@ -201,7 +191,6 @@ class TestAttentionInstabilityScorer:
 
     def test_compute_layer_statistics(self):
         """Test detailed statistics computation."""
-        import torch
 
         scorer = AttentionInstabilityScorer()
 
@@ -227,7 +216,6 @@ class TestAttentionInstabilityScorer:
 
     def test_protocol_compliance(self):
         """Test that scorer implements the ConfidenceScorer protocol."""
-        import torch
         from air.interfaces.router import ConfidenceScorer
 
         scorer = AttentionInstabilityScorer()
@@ -259,7 +247,6 @@ class TestAttentionInstabilityScorer:
 
     def test_empty_attention_tensor(self):
         """Test handling of empty attention tensor."""
-        import torch
 
         scorer = AttentionInstabilityScorer()
 
@@ -272,7 +259,6 @@ class TestAttentionInstabilityScorer:
 
     def test_single_layer_attention(self):
         """Test handling of single layer attention (no cross-layer variance)."""
-        import torch
 
         scorer = AttentionInstabilityScorer()
 
@@ -287,7 +273,6 @@ class TestAttentionInstabilityScorer:
 
     def test_batch_dimension_handling(self):
         """Test that scorer properly handles batch dimensions."""
-        import torch
 
         scorer = AttentionInstabilityScorer()
 
@@ -303,7 +288,6 @@ class TestAttentionInstabilityScorer:
 
     def test_different_aggregation_methods(self):
         """Test that different aggregation methods produce different but valid scores."""
-        import torch
 
         attn = torch.rand(16, 8, 32, 32)
         attn = torch.softmax(attn, dim=-1)
@@ -338,7 +322,6 @@ class TestAttentionInstabilityScorer:
 
     def test_score_consistency_with_same_input(self):
         """Test that scoring the same input produces consistent results."""
-        import torch
 
         scorer = AttentionInstabilityScorer()
         attn = torch.rand(8, 8, 32, 32)
@@ -350,7 +333,6 @@ class TestAttentionInstabilityScorer:
 
     def test_invalid_shape_raises_error(self):
         """Test that invalid tensor shapes raise errors."""
-        import torch
 
         scorer = AttentionInstabilityScorer()
 
