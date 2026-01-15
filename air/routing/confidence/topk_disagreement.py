@@ -16,7 +16,6 @@ from typing import TYPE_CHECKING
 from air.interfaces.router import BaseConfidenceScorer
 
 if TYPE_CHECKING:
-    import torch
     from air.types import Logits
 
 
@@ -25,13 +24,15 @@ class TopKDisagreementScorer(BaseConfidenceScorer):
     Confidence scorer based on top-k prediction disagreement.
 
     This scorer measures the consensus level among the top-k most likely
-    predictions by analyzing the distribution of probability mass. Higher
-    concentration in fewer top predictions indicates higher confidence.
+    predictions by analyzing the entropy of their probability distribution.
+    Lower entropy (more concentrated distribution) indicates higher confidence,
+    while higher entropy (more uniform distribution) indicates disagreement
+    and uncertainty.
 
-    The disagreement is quantified by comparing how the probability mass is
-    distributed among the top-k tokens. If the top-k tokens have very similar
-    probabilities, there's high disagreement (low confidence). If one token
-    dominates, there's low disagreement (high confidence).
+    The 'disagreement' refers to how spread out the probability mass is among
+    the top-k tokens. If one token dominates, there's low disagreement (high
+    confidence). If the top-k tokens have similar probabilities, there's high
+    disagreement (low confidence).
 
     Attributes:
         k: Number of top predictions to consider. Default: 5.
@@ -150,35 +151,47 @@ class TopKDisagreementScorer(BaseConfidenceScorer):
             # topk returns (values, indices)
             topk_probs, _ = torch.topk(probs, k=effective_k, dim=-1)
 
-            # Average across batch dimension if needed
+            # For batch processing, compute per-sample scores and average
+            # This gives an overall confidence for the batch
             if topk_probs.shape[0] > 1:
-                topk_probs = topk_probs.mean(dim=0)
+                # Compute confidence for each sample in batch
+                confidences = []
+                for i in range(topk_probs.shape[0]):
+                    sample_probs = topk_probs[i]
+                    sample_probs_norm = sample_probs / sample_probs.sum()
+                    eps = 1e-10
+                    sample_entropy = -(sample_probs_norm * torch.log(sample_probs_norm + eps)).sum()
+                    max_entropy = torch.log(torch.tensor(float(effective_k)))
+                    norm_entropy = sample_entropy / (max_entropy + eps)
+                    confidences.append((1.0 - norm_entropy).item())
+                # Return average confidence across batch
+                return float(sum(confidences) / len(confidences))
             else:
                 topk_probs = topk_probs.squeeze(0)
 
             # Compute disagreement metric using normalized entropy
             # We measure how concentrated the probability mass is in the top-k
-            
+
             # Normalize top-k probabilities to sum to 1
             topk_probs_normalized = topk_probs / topk_probs.sum()
-            
+
             # Compute entropy of the normalized top-k distribution
             # Add small epsilon to avoid log(0)
             eps = 1e-10
             topk_entropy = -(topk_probs_normalized * torch.log(topk_probs_normalized + eps)).sum()
-            
+
             # Normalize entropy by max possible entropy for k items
             # Max entropy = log(k) when all k items are equally likely
             max_entropy = torch.log(torch.tensor(float(effective_k)))
             normalized_entropy = topk_entropy / (max_entropy + eps)
-            
+
             # Convert normalized entropy to confidence
             # Low entropy (concentrated distribution) = high confidence
             # High entropy (uniform distribution) = low confidence
-            confidence = 1.0 - normalized_entropy.item()
-            
+            confidence = (1.0 - normalized_entropy).item()
+
             # Clamp to valid range
-            return max(0.0, min(1.0, confidence))
+            return float(max(0.0, min(1.0, confidence)))
 
         except Exception:
             # On any error, return neutral confidence
