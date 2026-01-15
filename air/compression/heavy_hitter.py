@@ -72,7 +72,6 @@ class HeavyHitterCompressor(BaseKVCompressor):
             )
 
         # Track cumulative attention scores per token
-        # dict[layer_idx, dict[token_position, attention_score]]
         self._attention_scores: dict[int, dict[int, float]] = {}
 
     def update_attention_scores(
@@ -225,12 +224,6 @@ class HeavyHitterCompressor(BaseKVCompressor):
             return cache
 
         # Create a new cache by removing evicted tokens
-        # Note: This is a simplified implementation. In practice, we would
-        # need to actually manipulate the KV tensors and create a new cache.
-        # For now, we return a reference implementation that tracks what
-        # should be evicted.
-
-        # Import here to avoid circular dependency and allow lazy loading
         from air.compression.cache_impl import evict_tokens_from_cache
 
         new_cache = evict_tokens_from_cache(cache, eviction_candidates)

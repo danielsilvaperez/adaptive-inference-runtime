@@ -4,14 +4,11 @@ Unit tests for Heavy Hitter Retention Policy.
 
 import pytest
 
-try:
-    import torch
-except ImportError:
-    pytest.skip("PyTorch not available", allow_module_level=True)
+torch = pytest.importorskip("torch")
 
-from air.types import CompressionConfig
-from air.compression.heavy_hitter import HeavyHitterCompressor
-from air.compression.cache_impl import SimpleKVCache
+from air.compression.cache_impl import SimpleKVCache  # noqa: E402
+from air.compression.heavy_hitter import HeavyHitterCompressor  # noqa: E402
+from air.types import CompressionConfig  # noqa: E402
 
 
 class TestHeavyHitterCompressor:

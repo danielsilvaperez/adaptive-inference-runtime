@@ -162,16 +162,19 @@ def evict_tokens_from_cache(
     if not positions_to_evict:
         return cache
 
-    # Sort positions for consistent processing
-    positions_to_evict = sorted(set(positions_to_evict))
-
     # Import torch here to avoid import errors if not available
     try:
         import torch
-    except ImportError:
-        # If torch is not available, return the original cache
-        # This allows the code to be imported without torch installed
-        return cache
+    except ImportError as e:
+        # If torch is not available, we cannot perform the eviction
+        # This is a critical error as the function is expected to work
+        raise ImportError(
+            "PyTorch is required for KV cache eviction operations. "
+            "Please install torch: pip install torch"
+        ) from e
+
+    # Sort positions for consistent processing
+    positions_to_evict = sorted(set(positions_to_evict))
 
     # Create a new cache
     new_cache = SimpleKVCache(
