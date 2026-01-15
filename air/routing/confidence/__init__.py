@@ -8,12 +8,14 @@ estimate routing confidence.
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from air.routing.confidence.attention_instability import AttentionInstabilityScorer
     from air.routing.confidence.token_entropy import EntropyScorer
     from air.routing.confidence.topk_disagreement import TopKDisagreementScorer
 
 __all__ = [
     "EntropyScorer",
     "TopKDisagreementScorer",
+    "AttentionInstabilityScorer",
 ]
 
 
@@ -27,4 +29,8 @@ def __getattr__(name: str) -> Any:
         from air.routing.confidence.topk_disagreement import TopKDisagreementScorer
 
         return TopKDisagreementScorer
+    if name == "AttentionInstabilityScorer":
+        from air.routing.confidence.attention_instability import AttentionInstabilityScorer
+
+        return AttentionInstabilityScorer
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
