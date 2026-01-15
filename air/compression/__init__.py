@@ -18,12 +18,14 @@ if TYPE_CHECKING:
     from air.compression.heavy_hitter import HeavyHitterCompressor
     from air.compression.pooling import AttentionPooling
     from air.compression.quantized import QuantizedCache
+    from air.compression.sliding_window import SlidingWindowCompressor
 
 __all__ = [
     "KVCacheCompressor",
     "HeavyHitterCompressor",
     "AttentionPooling",
     "QuantizedCache",
+    "SlidingWindowCompressor",
 ]
 
 
@@ -41,4 +43,7 @@ def __getattr__(name: str):
     elif name == "QuantizedCache":
         from air.compression import quantized
         return quantized.QuantizedCache
+    elif name == "SlidingWindowCompressor":
+        from air.compression import sliding_window
+        return sliding_window.SlidingWindowCompressor
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
