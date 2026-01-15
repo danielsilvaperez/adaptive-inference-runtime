@@ -13,6 +13,7 @@ air.interfaces.router and provide normalized scores in [0.0, 1.0] where:
 
 from __future__ import annotations
 
+import math
 from typing import TYPE_CHECKING
 
 import torch
@@ -161,7 +162,7 @@ class EntropyScorer(BaseConfidenceScorer):
             mean_entropy = entropy.mean().item()
 
             # Handle NaN or inf
-            if not torch.isfinite(torch.tensor(mean_entropy)):
+            if not math.isfinite(mean_entropy):
                 return 0.5
 
             # Convert entropy to confidence score
@@ -174,8 +175,8 @@ class EntropyScorer(BaseConfidenceScorer):
 
             return confidence
 
-        except Exception:
-            # On any error, return neutral score
+        except (RuntimeError, ValueError, TypeError) as e:
+            # On tensor operation errors, return neutral score
             return 0.5
 
     def __repr__(self) -> str:

@@ -218,10 +218,10 @@ class TestEntropyScorer:
         assert 0.0 <= score <= 1.0
 
     def test_batch_with_varying_distributions(self):
-        """Test batch with mixed peaked and flat distributions."""
+        """Test batch averaging behavior with mixed peaked and flat distributions."""
         scorer = EntropyScorer()
 
-        # Mix peaked and uniform distributions
+        # Mix peaked and uniform distributions to test averaging
         peaked = torch.tensor([10.0, 0.1, 0.1, 0.1])
         uniform = torch.ones(4)
         logits = torch.stack([peaked, uniform])
@@ -229,9 +229,9 @@ class TestEntropyScorer:
         score = scorer.score(logits)
 
         # Peaked has very low entropy (~0), uniform has entropy ~1.39
-        # Average entropy ~0.69, which gives high confidence with threshold=8.0
+        # Average entropy ~0.69 gives: 1 - 0.69/8.0 ≈ 0.91 confidence
         assert 0.0 <= score <= 1.0
-        assert score > 0.8  # Should be high since peaked dominates the average
+        assert score > 0.8  # Mathematical average yields high confidence
 
     def test_protocol_compliance(self):
         """Test that EntropyScorer complies with ConfidenceScorer protocol."""
