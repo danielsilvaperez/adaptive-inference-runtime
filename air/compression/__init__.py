@@ -6,6 +6,7 @@ memory footprint during inference while maintaining generation quality.
 
 Key Components:
     - KVCacheCompressor: Main compression interface
+    - HeavyHitterCompressor: Heavy hitter retention policy
     - AttentionPooling: Attention-based cache compression
     - QuantizedCache: Quantized KV cache for memory efficiency
 """
@@ -14,11 +15,13 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from air.compression.compressor import KVCacheCompressor
+    from air.compression.heavy_hitter import HeavyHitterCompressor
     from air.compression.pooling import AttentionPooling
     from air.compression.quantized import QuantizedCache
 
 __all__ = [
     "KVCacheCompressor",
+    "HeavyHitterCompressor",
     "AttentionPooling",
     "QuantizedCache",
 ]
@@ -29,6 +32,9 @@ def __getattr__(name: str):
     if name == "KVCacheCompressor":
         from air.compression import compressor
         return compressor.KVCacheCompressor
+    elif name == "HeavyHitterCompressor":
+        from air.compression import heavy_hitter
+        return heavy_hitter.HeavyHitterCompressor
     elif name == "AttentionPooling":
         from air.compression import pooling
         return pooling.AttentionPooling
