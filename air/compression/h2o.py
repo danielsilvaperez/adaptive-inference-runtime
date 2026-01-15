@@ -19,6 +19,7 @@ H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Mo
 
 from __future__ import annotations
 
+import warnings
 from typing import TYPE_CHECKING
 
 import torch
@@ -335,7 +336,6 @@ class H2OCompressor(BaseKVCompressor):
             )
 
             # Keep top heavy_hitter_ratio of tokens per layer
-            # If heavy_hitter_ratio is 0, keep_count should be 0, not 1
             keep_count = int(len(sorted_positions) * self._config.heavy_hitter_ratio)
             if keep_count > 0:
                 layer_hitters = [pos for pos, _ in sorted_positions[:keep_count]]
@@ -417,8 +417,6 @@ class H2OCompressor(BaseKVCompressor):
 
         # For now, return the original cache as a placeholder
         # Real implementations should override this method
-        import warnings
-
         warnings.warn(
             "H2OCompressor._create_evicted_cache is using placeholder implementation. "
             "This should be overridden by adapter-specific code.",
