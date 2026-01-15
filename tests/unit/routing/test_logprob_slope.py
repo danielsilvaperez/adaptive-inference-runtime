@@ -87,7 +87,7 @@ class TestLogprobSlopeTrackerAddLogprob:
         # Should only keep last 3
         assert tracker.history_length == 3
         # Verify the correct ones are kept (last 3)
-        assert tracker._logprob_history == [-0.3, -0.4, -0.5]
+        assert tracker.get_history() == [-0.3, -0.4, -0.5]
 
     def test_reset_clears_history(self):
         """Test that reset clears the history."""

@@ -113,6 +113,15 @@ class LogprobSlopeTracker(BaseConfidenceScorer):
         """Get the current length of the logprob history."""
         return len(self._logprob_history)
 
+    def get_history(self) -> list[float]:
+        """
+        Get a copy of the current logprob history.
+
+        Returns:
+            A copy of the log probability history list.
+        """
+        return self._logprob_history.copy()
+
     def add_logprob(self, logprob: float) -> None:
         """
         Add a log probability to the tracking window.
@@ -231,24 +240,33 @@ class LogprobSlopeTracker(BaseConfidenceScorer):
         Convert slope value to confidence score.
 
         Maps the slope of log probabilities to a confidence score in [0.0, 1.0].
-        Uses a sigmoid-like transformation to smoothly map slopes to confidence.
+        Uses linear normalization with the sharp drop threshold as reference point.
 
         Args:
             slope: The slope of the log probability trajectory.
 
         Returns:
             Confidence score in [0.0, 1.0].
+
+        Note:
+            - slope >= 0 (stable/improving) → confidence = 1.0
+            - slope = threshold (sharp drop) → confidence = 0.0
+            - slope between 0 and threshold → linearly interpolated
+            - slope < threshold (very sharp drop) → confidence = 0.0
         """
         # Positive or zero slope -> high confidence
         if slope >= 0:
             return 1.0
 
         # Normalize slope relative to sharp drop threshold
-        # If slope is at or below threshold, confidence is very low
-        normalized_slope = slope / self._sharp_drop_threshold
+        # Both slope and threshold are negative, so their ratio is positive
+        # slope closer to 0 → ratio closer to 0 → higher confidence
+        # slope at threshold → ratio = 1.0 → lower confidence
+        # slope below threshold → ratio > 1.0 → very low confidence
+        normalized_ratio = abs(slope) / abs(self._sharp_drop_threshold)
 
-        # Clamp to [0, 1] and invert (larger negative slope -> lower confidence)
-        confidence = max(0.0, min(1.0, 1.0 - normalized_slope))
+        # Convert to confidence: ratio of 0 → confidence 1.0, ratio >= 1.0 → confidence 0.0
+        confidence = max(0.0, min(1.0, 1.0 - normalized_ratio))
 
         return confidence
 
