@@ -44,7 +44,6 @@ class H2OCompressor(BaseKVCompressor):
     Attributes:
         config: Compression configuration with H2O-specific parameters.
         _attention_scores: Accumulated attention scores per layer and token.
-        _token_positions: Mapping of token positions to track scores.
         _per_layer: Whether to use per-layer eviction policy.
 
     Example:
@@ -336,9 +335,11 @@ class H2OCompressor(BaseKVCompressor):
             )
 
             # Keep top heavy_hitter_ratio of tokens per layer
-            keep_count = max(1, int(len(sorted_positions) * self._config.heavy_hitter_ratio))
-            layer_hitters = [pos for pos, _ in sorted_positions[:keep_count]]
-            per_layer_hitters.append(layer_hitters)
+            # If heavy_hitter_ratio is 0, keep_count should be 0, not 1
+            keep_count = int(len(sorted_positions) * self._config.heavy_hitter_ratio)
+            if keep_count > 0:
+                layer_hitters = [pos for pos, _ in sorted_positions[:keep_count]]
+                per_layer_hitters.append(layer_hitters)
 
         # Take union of heavy hitters across layers
         if not per_layer_hitters:

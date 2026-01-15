@@ -431,6 +431,31 @@ class TestHeavyHitterSelection:
         # Position 10 should definitely be included (heavy hitter in both layers)
         assert 10 in heavy_hitters
 
+    def test_select_heavy_hitters_per_layer_zero_ratio(self):
+        """Test per-layer heavy hitter selection with zero ratio."""
+        config = CompressionConfig(
+            eviction_policy="h2o",
+            per_layer_policy=True,
+            heavy_hitter_ratio=0.0,  # Keep none based on ratio
+        )
+        compressor = H2OCompressor(config)
+
+        cache = MockKVCache(size=100, num_layers=2)
+
+        # Layer 0: positions with scores
+        compressor._attention_scores[0] = {
+            5: 10.0,
+            10: 8.0,
+            15: 1.0,
+        }
+
+        evictable = [5, 10, 15, 20, 25]
+        heavy_hitters = compressor._select_heavy_hitters_per_layer(cache, evictable, count=2)
+
+        # With ratio=0, no tokens should be selected from per-layer logic initially
+        # But we need at least 'count' tokens, so oldest will be selected
+        assert len(heavy_hitters) == 2
+
 
 class TestUtilityMethods:
     """Tests for utility methods."""
