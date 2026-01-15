@@ -10,6 +10,7 @@ Key Components:
     - AttentionPooling: Attention-based cache compression
     - QuantizedCache: Quantized KV cache for memory efficiency
     - SlidingWindowCompressor: Sliding window retention policy
+    - H2OCompressor: H2O (Heavy Hitter Oracle) eviction policy
 """
 
 from typing import TYPE_CHECKING, Any
@@ -20,6 +21,7 @@ if TYPE_CHECKING:
     from air.compression.pooling import AttentionPooling
     from air.compression.quantized import QuantizedCache
     from air.compression.sliding_window import SlidingWindowCompressor
+    from air.compression.h2o import H2OCompressor
 
 __all__ = [
     "KVCacheCompressor",
@@ -27,6 +29,7 @@ __all__ = [
     "AttentionPooling",
     "QuantizedCache",
     "SlidingWindowCompressor",
+    "H2OCompressor",
 ]
 
 
@@ -50,4 +53,7 @@ def __getattr__(name: str) -> Any:
     elif name == "SlidingWindowCompressor":
         from air.compression import sliding_window
         return sliding_window.SlidingWindowCompressor
+    elif name == "H2OCompressor":
+        from air.compression import h2o
+        return h2o.H2OCompressor
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
