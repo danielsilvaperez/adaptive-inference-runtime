@@ -9,6 +9,7 @@ Key Components:
     - Router: Base router interface and implementations
     - ConfidenceEstimator: Estimates model confidence for routing decisions
     - ComplexityAnalyzer: Analyzes query complexity
+    - LogprobSlopeTracker: Tracks log probability slopes for confidence estimation
 """
 
 from typing import TYPE_CHECKING
@@ -17,12 +18,14 @@ if TYPE_CHECKING:
     from air.routing.router import Router, BaseRouter
     from air.routing.confidence import ConfidenceEstimator
     from air.routing.complexity import ComplexityAnalyzer
+    from air.routing.logprob_slope import LogprobSlopeTracker
 
 __all__ = [
     "Router",
     "BaseRouter",
     "ConfidenceEstimator",
     "ComplexityAnalyzer",
+    "LogprobSlopeTracker",
 ]
 
 
@@ -37,4 +40,7 @@ def __getattr__(name: str):
     elif name == "ComplexityAnalyzer":
         from air.routing import complexity
         return complexity.ComplexityAnalyzer
+    elif name == "LogprobSlopeTracker":
+        from air.routing.logprob_slope import LogprobSlopeTracker
+        return LogprobSlopeTracker
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
