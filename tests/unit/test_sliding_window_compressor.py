@@ -17,7 +17,11 @@ from air.compression.sliding_window import SlidingWindowCompressor
 from air.types import CompressionConfig
 
 # Test constants
-COMPRESSION_RATIO_TOLERANCE = 0.1  # Tolerance for memory compression ratio tests
+# Tolerance for memory compression ratio tests - set to 10% to account for:
+# - Memory estimation inaccuracies in BaseKVCompressor.get_memory_usage()
+# - Different tensor shapes and memory alignment
+# - Overhead from cache wrapper objects
+COMPRESSION_RATIO_TOLERANCE = 0.1
 
 
 class MockKVCache:

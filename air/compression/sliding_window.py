@@ -185,12 +185,8 @@ class SlidingWindowCompressor(BaseKVCompressor):
             (batch_size, num_heads, seq_len, head_dim) where seq_len is the
             dimension to slice along (dim=2).
         """
-        # Note: torch.Tensor in type annotations is safe here because with
-        # `from __future__ import annotations`, they are evaluated as strings
-        # at runtime and won't cause import errors.
-
         # Create a new cache by slicing each layer's KV tensors
-        # We use a simple dictionary-based implementation to wrap the sliced data
+        # We use a lightweight wrapper that lazily slices tensors on access
 
         class SlicedKVCache:
             """Temporary cache implementation for sliced data."""
