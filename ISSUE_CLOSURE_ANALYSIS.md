@@ -6,8 +6,8 @@ This document analyzes which GitHub issues have been addressed by closed PRs and
 
 **Total Open Issues:** 23  
 **Total Closed/Merged PRs:** 7  
-**Issues to Close:** 2 partial, 0 complete  
-**Issues to Update:** 2
+**Issues to Close:** 3 (fully completed)  
+**Issues to Update:** 0
 
 ## Closed PRs Analysis
 
