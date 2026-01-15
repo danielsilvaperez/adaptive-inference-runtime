@@ -57,9 +57,7 @@ class EntropyScorer(BaseConfidenceScorer):
         >>> assert uniform_score < 0.3  # Should be low confidence (high entropy)
     """
 
-    def __init__(
-        self, temperature: float = 1.0, max_entropy_threshold: float = 8.0
-    ) -> None:
+    def __init__(self, temperature: float = 1.0, max_entropy_threshold: float = 8.0) -> None:
         """
         Initialize the entropy scorer.
 
@@ -75,9 +73,7 @@ class EntropyScorer(BaseConfidenceScorer):
         if temperature <= 0:
             raise ValueError(f"temperature must be positive, got {temperature}")
         if max_entropy_threshold <= 0:
-            raise ValueError(
-                f"max_entropy_threshold must be positive, got {max_entropy_threshold}"
-            )
+            raise ValueError(f"max_entropy_threshold must be positive, got {max_entropy_threshold}")
 
         self._temperature = temperature
         self._max_entropy_threshold = max_entropy_threshold
@@ -97,7 +93,7 @@ class EntropyScorer(BaseConfidenceScorer):
         """Get the maximum entropy threshold."""
         return self._max_entropy_threshold
 
-    def score(self, logits: "Logits") -> float:
+    def score(self, logits: Logits) -> float:
         """
         Compute confidence score from logits using Shannon entropy.
 
@@ -137,7 +133,6 @@ class EntropyScorer(BaseConfidenceScorer):
                 logits = logits.unsqueeze(0)
 
             # If logits is 3D (batch, seq, vocab), flatten to (batch*seq, vocab)
-            original_shape = logits.shape
             if logits.dim() == 3:
                 batch_size, seq_len, vocab_size = logits.shape
                 logits = logits.view(-1, vocab_size)
@@ -175,7 +170,7 @@ class EntropyScorer(BaseConfidenceScorer):
 
             return confidence
 
-        except (RuntimeError, ValueError, TypeError) as e:
+        except (RuntimeError, ValueError, TypeError):
             # On tensor operation errors, return neutral score
             return 0.5
 

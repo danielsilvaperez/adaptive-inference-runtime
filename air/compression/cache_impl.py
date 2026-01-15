@@ -139,9 +139,7 @@ class SimpleKVCache:
         )
 
 
-def evict_tokens_from_cache(
-    cache: KVCache, positions_to_evict: list[int]
-) -> KVCache:
+def evict_tokens_from_cache(cache: KVCache, positions_to_evict: list[int]) -> KVCache:
     """
     Evict specified token positions from the KV cache.
 
@@ -177,14 +175,10 @@ def evict_tokens_from_cache(
     positions_to_evict = sorted(set(positions_to_evict))
 
     # Create a new cache
-    new_cache = SimpleKVCache(
-        num_layers=cache.num_layers, max_size=cache.max_size
-    )
+    new_cache = SimpleKVCache(num_layers=cache.num_layers, max_size=cache.max_size)
 
     # Create a mask of positions to keep
-    positions_to_keep = [
-        i for i in range(cache.size) if i not in positions_to_evict
-    ]
+    positions_to_keep = [i for i in range(cache.size) if i not in positions_to_evict]
 
     # For each layer, select and copy the tokens we want to keep
     for layer in range(cache.num_layers):

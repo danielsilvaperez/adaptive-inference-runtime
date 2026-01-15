@@ -17,11 +17,11 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from air.compression.compressor import KVCacheCompressor
+    from air.compression.h2o import H2OCompressor
     from air.compression.heavy_hitter import HeavyHitterCompressor
     from air.compression.pooling import AttentionPooling
     from air.compression.quantized import QuantizedCache
     from air.compression.sliding_window import SlidingWindowCompressor
-    from air.compression.h2o import H2OCompressor
 
 __all__ = [
     "KVCacheCompressor",
@@ -41,6 +41,7 @@ def __getattr__(name: str) -> Any:
         return compressor.KVCacheCompressor
     elif name == "HeavyHitterCompressor":
         from air.compression import heavy_hitter
+
         return heavy_hitter.HeavyHitterCompressor
     elif name == "AttentionPooling":
         from air.compression import pooling
@@ -52,8 +53,10 @@ def __getattr__(name: str) -> Any:
         return quantized.QuantizedCache
     elif name == "SlidingWindowCompressor":
         from air.compression import sliding_window
+
         return sliding_window.SlidingWindowCompressor
     elif name == "H2OCompressor":
         from air.compression import h2o
+
         return h2o.H2OCompressor
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

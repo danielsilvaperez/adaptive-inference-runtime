@@ -2,7 +2,6 @@
 Unit tests for H2O-style KV cache compressor.
 """
 
-
 import pytest
 import torch
 

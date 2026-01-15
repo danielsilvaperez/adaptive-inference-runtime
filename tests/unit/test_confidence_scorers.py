@@ -132,10 +132,12 @@ class TestEntropyScorer:
     def test_2d_logits(self):
         """Test scoring with 2D logits (batch of predictions)."""
         scorer = EntropyScorer()
-        logits = torch.tensor([
-            [5.0, 1.0, 0.5],
-            [3.0, 2.9, 2.8],  # Less peaked
-        ])
+        logits = torch.tensor(
+            [
+                [5.0, 1.0, 0.5],
+                [3.0, 2.9, 2.8],  # Less peaked
+            ]
+        )
 
         score = scorer.score(logits)
 
@@ -164,7 +166,7 @@ class TestEntropyScorer:
     def test_nan_handling(self):
         """Test that NaN values are handled gracefully."""
         scorer = EntropyScorer()
-        logits_with_nan = torch.tensor([[1.0, float('nan'), 2.0]])
+        logits_with_nan = torch.tensor([[1.0, float("nan"), 2.0]])
 
         score = scorer.score(logits_with_nan)
 
@@ -174,7 +176,7 @@ class TestEntropyScorer:
     def test_inf_handling(self):
         """Test that inf values are handled gracefully."""
         scorer = EntropyScorer()
-        logits_with_inf = torch.tensor([[1.0, float('inf'), 2.0]])
+        logits_with_inf = torch.tensor([[1.0, float("inf"), 2.0]])
 
         score = scorer.score(logits_with_inf)
 
@@ -238,11 +240,11 @@ class TestEntropyScorer:
         scorer = EntropyScorer()
 
         # Must have name property
-        assert hasattr(scorer, 'name')
+        assert hasattr(scorer, "name")
         assert isinstance(scorer.name, str)
 
         # Must have score method
-        assert hasattr(scorer, 'score')
+        assert hasattr(scorer, "score")
         assert callable(scorer.score)
 
         # Score method should accept logits and return float

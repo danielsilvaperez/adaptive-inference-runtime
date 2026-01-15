@@ -28,8 +28,10 @@ def __getattr__(name: str) -> Any:
     """Lazy import mechanism for routing components."""
     if name in ("EntropyScorer", "TopKDisagreementScorer"):
         from air.routing import confidence
+
         return getattr(confidence, name)
     elif name == "LogprobSlopeTracker":
         from air.routing.logprob_slope import LogprobSlopeTracker
+
         return LogprobSlopeTracker
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
