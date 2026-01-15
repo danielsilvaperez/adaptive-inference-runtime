@@ -9,6 +9,8 @@ Tests cover:
 - Layer statistics computation
 """
 
+import math
+
 import pytest
 import torch
 
@@ -57,9 +59,10 @@ class TestAttentionInstabilityScorer:
 
     def test_score_from_logits_returns_default(self):
         """Test that score() returns default value since this scorer needs attention weights."""
-
         scorer = AttentionInstabilityScorer()
-        logits = torch.randn(10, 50000)  # (seq_len, vocab_size)
+        # Note: This is not typical model output shape, but used for testing
+        # Typical shapes would be (batch_size, vocab_size) or (batch_size, seq_len, vocab_size)
+        logits = torch.randn(10, 50000)
         score = scorer.score(logits)
 
         # Should return default neutral score
@@ -137,8 +140,6 @@ class TestAttentionInstabilityScorer:
 
     def test_layer_statistics(self):
         """Test detailed layer statistics computation."""
-        import math
-
         scorer = AttentionInstabilityScorer()
 
         # Create attention weights with known properties

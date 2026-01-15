@@ -7,20 +7,29 @@ High variance in attention patterns often indicates uncertainty or difficulty
 in the model's reasoning process.
 
 The scorer:
-- Extracts attention weights from model layers
+- Analyzes pre-extracted attention weights from model layers
 - Computes variance across layers and heads
 - Normalizes the instability metric to a confidence score [0.0, 1.0]
 - Supports configurable sensitivity through thresholds
+
+Note: This scorer requires attention weights to be extracted externally 
+from the model. Not all inference backends provide access to attention weights.
 """
 
 from __future__ import annotations
 
+import torch
 from typing import TYPE_CHECKING, Dict, Optional, Tuple
 
 if TYPE_CHECKING:
-    import torch
+    pass
 
 from air.interfaces.router import BaseConfidenceScorer
+
+# Empirical scaling factor for variance normalization
+# This factor converts typical attention variance (usually < 0.1) to a [0, 1] range
+# Adjust this value if working with attention patterns that have different variance characteristics
+_VARIANCE_NORMALIZATION_FACTOR = 10.0
 
 
 class AttentionInstabilityScorer(BaseConfidenceScorer):
@@ -166,7 +175,6 @@ class AttentionInstabilityScorer(BaseConfidenceScorer):
             >>> attn = torch.rand(32, 32, 128, 128)
             >>> score = scorer.score_from_attention(attn)
         """
-        import torch
 
         # Validate input
         if attention_weights.dim() < 4:
@@ -212,7 +220,6 @@ class AttentionInstabilityScorer(BaseConfidenceScorer):
         Returns:
             Instability score (higher = more unstable).
         """
-        import torch
 
         # Compute cross-layer variance
         layer_variance = self._compute_layer_variance(attention_weights)
@@ -247,7 +254,6 @@ class AttentionInstabilityScorer(BaseConfidenceScorer):
         Returns:
             Normalized variance score.
         """
-        import torch
 
         # Average attention across heads for each layer
         # Shape: (num_layers, seq_len, seq_len) or (num_layers, batch, seq_len, seq_len)
@@ -266,9 +272,11 @@ class AttentionInstabilityScorer(BaseConfidenceScorer):
         # Take mean variance across all positions
         mean_variance = attn_variance.mean()
 
-        # Normalize to a reasonable range
+        # Normalize to a reasonable range using empirical scaling factor
         # Empirically, variance rarely exceeds 0.1 for normalized attention
-        normalized_variance = torch.clamp(mean_variance * 10.0, 0.0, 1.0)
+        normalized_variance = torch.clamp(
+            mean_variance * _VARIANCE_NORMALIZATION_FACTOR, 0.0, 1.0
+        )
 
         return float(normalized_variance)
 
@@ -285,7 +293,6 @@ class AttentionInstabilityScorer(BaseConfidenceScorer):
         Returns:
             Normalized variance score.
         """
-        import torch
 
         # Compute variance across heads for each layer
         if attention_weights.dim() == 5:
@@ -301,8 +308,10 @@ class AttentionInstabilityScorer(BaseConfidenceScorer):
         # Take mean variance across layers and positions
         mean_variance = head_variance.mean()
 
-        # Normalize to a reasonable range
-        normalized_variance = torch.clamp(mean_variance * 10.0, 0.0, 1.0)
+        # Normalize to a reasonable range using empirical scaling factor
+        normalized_variance = torch.clamp(
+            mean_variance * _VARIANCE_NORMALIZATION_FACTOR, 0.0, 1.0
+        )
 
         return float(normalized_variance)
 
@@ -319,7 +328,6 @@ class AttentionInstabilityScorer(BaseConfidenceScorer):
         Returns:
             Confidence score [0.0, 1.0].
         """
-        import torch
 
         if attention_weights.dim() == 4:
             # Average over batch
@@ -329,8 +337,10 @@ class AttentionInstabilityScorer(BaseConfidenceScorer):
         head_variance = torch.var(attention_weights, dim=0)
         mean_variance = head_variance.mean()
 
-        # Convert variance to confidence
-        normalized_variance = torch.clamp(mean_variance * 10.0, 0.0, 1.0)
+        # Convert variance to confidence using empirical scaling factor
+        normalized_variance = torch.clamp(
+            mean_variance * _VARIANCE_NORMALIZATION_FACTOR, 0.0, 1.0
+        )
         scaled_variance = normalized_variance * (1.0 + self._sensitivity)
         confidence = 1.0 / (1.0 + scaled_variance)
 
@@ -362,7 +372,6 @@ class AttentionInstabilityScorer(BaseConfidenceScorer):
             >>> stats = scorer.compute_layer_statistics(attn)
             >>> print(f"Max variance: {stats['max_variance']:.4f}")
         """
-        import torch
 
         if attention_weights.dim() == 5:
             # Average over batch dimension
