@@ -96,3 +96,11 @@ def test_generate_draft_requires_prompt() -> None:
     with pytest.raises(ValueError, match="prompt must be non-empty"):
         model.generate_draft("", GenerationConfig())
 
+
+def test_generate_draft_rejects_explicit_zero_max_draft_tokens() -> None:
+    adapter = FakeAdapter([Token(id=1, text="a", logprob=-0.1)])
+    model = DraftModel(adapter)
+
+    with pytest.raises(ValueError, match="max_draft_tokens must be positive"):
+        model.generate_draft("hello", GenerationConfig(), max_draft_tokens=0)
+

@@ -167,7 +167,7 @@ class DraftModel:
 
     def _resolve_draft_limit(self, max_draft_tokens: int | None) -> int:
         """Resolve the requested draft limit with validation and clamping."""
-        draft_limit = max_draft_tokens or self._default_draft_tokens
+        draft_limit = max_draft_tokens if max_draft_tokens is not None else self._default_draft_tokens
         if draft_limit <= 0:
             raise ValueError("max_draft_tokens must be positive")
         return min(max(draft_limit, self._min_draft_tokens), self._max_draft_tokens)
