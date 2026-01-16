@@ -9,9 +9,9 @@ This module provides lightweight, configurable mechanisms for:
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Iterable
 
 from air.state import InferenceState
 from air.types import CompressionConfig
@@ -167,7 +167,8 @@ class CompressionQualityMonitor:
             return CompressionDecision(enabled=config.enabled, target_ratio=config.target_ratio)
 
         baseline = self._get_or_set_baseline(state, stats.avg_logprob)
-        violations = self._evaluate_violations(stats.avg_logprob, stats.min_logprob, baseline)
+        windowed_min = self._compute_windowed_min(state)
+        violations = self._evaluate_violations(stats.avg_logprob, windowed_min, baseline)
 
         if not violations:
             return CompressionDecision(enabled=config.enabled, target_ratio=config.target_ratio)
@@ -194,6 +195,18 @@ class CompressionQualityMonitor:
         if key not in metadata:
             metadata[key] = avg_logprob
         return float(metadata[key])
+
+    def _compute_windowed_min(self, state: InferenceState) -> float:
+        """
+        Compute minimum logprob from recent window instead of global minimum.
+
+        Returns float('inf') when no recent tokens are available, which ensures
+        no violation is triggered for the minimum logprob check.
+        """
+        recent = state.recent_logprobs
+        if not recent:
+            return float("inf")
+        return min(recent)
 
     def _evaluate_violations(
         self, avg_logprob: float, min_logprob: float, baseline: float
@@ -247,5 +260,7 @@ class CompressionSafetyManager:
 def allowed_use_cases(config: SafetyGuardConfig) -> Iterable[str]:
     """Return allowed use-case strings for external documentation tooling."""
     return [
-        use_case.value for use_case in CompressionUseCase if use_case not in config.disabled_use_cases
+        use_case.value
+        for use_case in CompressionUseCase
+        if use_case not in config.disabled_use_cases
     ]
