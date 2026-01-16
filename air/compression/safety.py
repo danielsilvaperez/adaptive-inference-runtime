@@ -197,7 +197,12 @@ class CompressionQualityMonitor:
         return float(metadata[key])
 
     def _compute_windowed_min(self, state: InferenceState) -> float:
-        """Compute minimum logprob from recent window instead of global minimum."""
+        """
+        Compute minimum logprob from recent window instead of global minimum.
+
+        Returns float('inf') when no recent tokens are available, which ensures
+        no violation is triggered for the minimum logprob check.
+        """
         recent = state.recent_logprobs
         if not recent:
             return float("inf")
