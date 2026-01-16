@@ -21,6 +21,15 @@ if TYPE_CHECKING:
     from air.compression.heavy_hitter import HeavyHitterCompressor
     from air.compression.pooling import AttentionPooling
     from air.compression.quantized import QuantizedCache
+    from air.compression.safety import (
+        CompressionDecision,
+        CompressionQualityMonitor,
+        CompressionSafetyGuard,
+        CompressionSafetyManager,
+        CompressionUseCase,
+        QualityMonitorConfig,
+        SafetyGuardConfig,
+    )
     from air.compression.sliding_window import SlidingWindowCompressor
 
 __all__ = [
@@ -30,6 +39,13 @@ __all__ = [
     "QuantizedCache",
     "SlidingWindowCompressor",
     "H2OCompressor",
+    "CompressionDecision",
+    "CompressionQualityMonitor",
+    "CompressionSafetyGuard",
+    "CompressionSafetyManager",
+    "CompressionUseCase",
+    "QualityMonitorConfig",
+    "SafetyGuardConfig",
 ]
 
 
@@ -59,4 +75,16 @@ def __getattr__(name: str) -> Any:
         from air.compression import h2o
 
         return h2o.H2OCompressor
+    elif name in {
+        "CompressionDecision",
+        "CompressionQualityMonitor",
+        "CompressionSafetyGuard",
+        "CompressionSafetyManager",
+        "CompressionUseCase",
+        "QualityMonitorConfig",
+        "SafetyGuardConfig",
+    }:
+        from air.compression import safety
+
+        return getattr(safety, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
