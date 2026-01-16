@@ -11,7 +11,6 @@ from __future__ import annotations
 
 from collections import deque
 from dataclasses import dataclass
-from typing import Deque
 
 from air.interfaces.adapter import ModelAdapter
 from air.types import GenerationConfig, Token
@@ -138,7 +137,7 @@ class DraftModel:
         draft_config = self._build_draft_config(config, effective_max_tokens)
 
         tokens = []
-        logprob_history: Deque[float] = deque(maxlen=self._logprob_window)
+        logprob_history: deque[float] = deque(maxlen=self._logprob_window)
         stopped_early = False
 
         for token in self._adapter.generate(prompt, draft_config):
@@ -167,7 +166,9 @@ class DraftModel:
 
     def _resolve_draft_limit(self, max_draft_tokens: int | None) -> int:
         """Resolve the requested draft limit with validation and clamping."""
-        draft_limit = max_draft_tokens if max_draft_tokens is not None else self._default_draft_tokens
+        draft_limit = (
+            max_draft_tokens if max_draft_tokens is not None else self._default_draft_tokens
+        )
         if draft_limit <= 0:
             raise ValueError("max_draft_tokens must be positive")
         return min(max(draft_limit, self._min_draft_tokens), self._max_draft_tokens)
@@ -186,7 +187,7 @@ class DraftModel:
         config_data["max_tokens"] = max_tokens
         return GenerationConfig.from_dict(config_data)
 
-    def _should_stop_early(self, logprob_history: Deque[float]) -> bool:
+    def _should_stop_early(self, logprob_history: deque[float]) -> bool:
         """Return True when rolling mean logprob drops below the threshold."""
         mean_logprob = sum(logprob_history) / len(logprob_history)
         return mean_logprob < self._logprob_stop_threshold
