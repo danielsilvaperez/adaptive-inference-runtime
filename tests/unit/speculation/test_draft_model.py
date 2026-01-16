@@ -103,4 +103,3 @@ def test_generate_draft_rejects_explicit_zero_max_draft_tokens() -> None:
 
     with pytest.raises(ValueError, match="max_draft_tokens must be positive"):
         model.generate_draft("hello", GenerationConfig(), max_draft_tokens=0)
-
