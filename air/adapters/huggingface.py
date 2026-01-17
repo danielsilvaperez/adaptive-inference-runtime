@@ -8,7 +8,6 @@ provide the standard AIR ModelAdapter interface.
 
 from __future__ import annotations
 
-import math
 from collections.abc import Iterator
 from typing import TYPE_CHECKING, Any
 

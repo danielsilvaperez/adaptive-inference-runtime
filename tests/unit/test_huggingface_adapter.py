@@ -5,7 +5,7 @@ Tests the HuggingFaceAdapter class with mocked models to avoid
 requiring actual model downloads.
 """
 
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 import torch
@@ -184,7 +184,9 @@ class TestHuggingFaceAdapterGenerate:
 
         assert len(tokens) == 3  # 3 new tokens
         assert all(isinstance(t, Token) for t in tokens)
-        assert all(hasattr(t, "id") and hasattr(t, "text") and hasattr(t, "logprob") for t in tokens)
+        assert all(
+            hasattr(t, "id") and hasattr(t, "text") and hasattr(t, "logprob") for t in tokens
+        )
 
     @patch("transformers.AutoModelForCausalLM")
     @patch("transformers.AutoTokenizer")
@@ -218,7 +220,7 @@ class TestHuggingFaceAdapterGenerate:
         adapter.load()
 
         config = GenerationConfig(max_tokens=1, temperature=0.0)
-        tokens = list(adapter.generate("Hello", config))
+        list(adapter.generate("Hello", config))
 
         # Verify generation was called with do_sample=False
         call_kwargs = mock_model_instance.generate.call_args[1]
