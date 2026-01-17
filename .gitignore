@@ -63,8 +63,3 @@ htmlcov/
 tmp/
 temp/
 .tmp
-
-# Agent steering files
-CLAUDE.md
-AGENTS.md
-GEMINI.md
