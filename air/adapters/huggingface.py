@@ -114,7 +114,7 @@ class HuggingFaceAdapter(ModelAdapter):
             load_in_4bit=self._load_in_4bit,
         )
 
-        if self._device == "cpu" or (isinstance(self._device, str) and "cpu" in self._device):
+        if self._device == "cpu":
             self._model = self._model.to(self._device)
 
         self._model.eval()
@@ -129,7 +129,9 @@ class HuggingFaceAdapter(ModelAdapter):
             del self._tokenizer
             self._tokenizer = None
         self._is_loaded = False
-        torch.cuda.empty_cache()
+        # Clear CUDA cache if available
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
     @property
     def is_loaded(self) -> bool:
@@ -156,8 +158,9 @@ class HuggingFaceAdapter(ModelAdapter):
         input_ids = inputs["input_ids"].to(self._model.device)
 
         # Prepare generation kwargs
+        max_tokens = config.max_tokens if config.max_tokens > 0 else 512
         gen_kwargs: dict[str, Any] = {
-            "max_new_tokens": config.max_tokens if config.max_tokens > 0 else 512,
+            "max_new_tokens": max_tokens,
             "do_sample": config.temperature > 0,
             "temperature": config.temperature if config.temperature > 0 else 1.0,
             "top_k": config.top_k if config.top_k > 0 else None,
@@ -253,7 +256,8 @@ class HuggingFaceAdapter(ModelAdapter):
 
         prompt_len = input_ids.shape[1]
         for i, draft_token in enumerate(draft_tokens):
-            # Get logits for position before this draft token
+            # Get logits that predict the current draft token position
+            # Logits at position (prompt_len + i - 1) predict token at position (prompt_len + i)
             position_logits = logits[prompt_len + i - 1]
             predicted_token_id = torch.argmax(position_logits).item()
 

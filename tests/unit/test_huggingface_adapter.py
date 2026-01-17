@@ -13,6 +13,9 @@ import torch
 from air.adapters.huggingface import HuggingFaceAdapter
 from air.types import GenerationConfig, Token
 
+# Test constants
+HIGH_LOGIT_VALUE = 10.0  # Value to set for logits to ensure argmax selection
+
 
 class TestHuggingFaceAdapterInit:
     """Tests for HuggingFaceAdapter initialization."""
@@ -302,9 +305,9 @@ class TestHuggingFaceAdapterVerifyTokens:
         vocab_size = 100
         # Create logits where argmax matches draft tokens
         mock_logits = torch.randn(6, vocab_size)  # 3 prompt + 3 draft
-        mock_logits[2, 4] = 10.0  # Position 2 predicts token 4
-        mock_logits[3, 5] = 10.0  # Position 3 predicts token 5
-        mock_logits[4, 6] = 10.0  # Position 4 predicts token 6
+        mock_logits[2, 4] = HIGH_LOGIT_VALUE  # Position 2 predicts token 4
+        mock_logits[3, 5] = HIGH_LOGIT_VALUE  # Position 3 predicts token 5
+        mock_logits[4, 6] = HIGH_LOGIT_VALUE  # Position 4 predicts token 6
 
         mock_output = Mock()
         mock_output.logits = mock_logits.unsqueeze(0)
@@ -352,8 +355,8 @@ class TestHuggingFaceAdapterVerifyTokens:
         vocab_size = 100
         # Create logits where first token matches but second doesn't
         mock_logits = torch.randn(6, vocab_size)
-        mock_logits[2, 4] = 10.0  # Position 2 predicts token 4 (match)
-        mock_logits[3, 7] = 10.0  # Position 3 predicts token 7 (no match, should be 5)
+        mock_logits[2, 4] = HIGH_LOGIT_VALUE  # Position 2 predicts token 4 (match)
+        mock_logits[3, 7] = HIGH_LOGIT_VALUE  # Position 3 predicts token 7 (no match, should be 5)
 
         mock_output = Mock()
         mock_output.logits = mock_logits.unsqueeze(0)
