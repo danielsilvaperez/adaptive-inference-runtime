@@ -201,8 +201,7 @@ class LlamaCppAdapter(ModelAdapter):
         )
 
         for chunk in stream:
-            for token in self._tokens_from_chunk(chunk):
-                yield token
+            yield from self._tokens_from_chunk(chunk)
 
     def get_logits(self, prompt: str) -> Logits:
         """

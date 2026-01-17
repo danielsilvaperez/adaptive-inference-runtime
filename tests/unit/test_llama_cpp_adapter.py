@@ -48,7 +48,7 @@ class FakeLlama:
         return [3, 4]
 
     def detokenize(self, tokens: list[int]) -> bytes:
-        return f"<{tokens[0]}>".encode("utf-8")
+        return f"<{tokens[0]}>".encode()
 
     def n_vocab(self) -> int:
         return 42
@@ -80,7 +80,7 @@ class TestLlamaCppAdapterLoading:
         adapter = LlamaCppAdapter(model_id="test-model", model_path="model.gguf")
 
         with pytest.raises(RuntimeError):
-            adapter.generate("test", GenerationConfig(max_tokens=1))
+            list(adapter.generate("test", GenerationConfig(max_tokens=1)))
 
         with pytest.raises(RuntimeError):
             adapter.get_logits("test")

@@ -59,6 +59,9 @@ docs = [
 llama-cpp = [
     "llama-cpp-python>=0.2.0",
 ]
+vllm = [
+    "vllm>=0.4.0",
+]
 
 [project.scripts]
 air = "air.cli:main"

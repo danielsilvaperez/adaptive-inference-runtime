@@ -157,7 +157,7 @@ Must be completed before routing logic.
   - Load model, tokenizer
   - Generate tokens, get logits
   - Extract attention weights (if available)
-- [ ] **1.1.2** Implement vLLM adapter (basic)
+- [✓] **1.1.2** Implement vLLM adapter (basic)
   - API integration
   - Logits extraction
 - [ ] **1.1.3** Write adapter tests (mock models for speed)

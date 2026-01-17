@@ -26,6 +26,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This project uses a professional Issue → Branch → PR → Review → Merge workflow.
 
+"pytest" to test and also ensure it's passing lint checks.
+
+Conda env name: adaptive-inference-runtime
+
 ### Branch Naming
 - `feature/` - New features
 - `fix/` - Bug fixes

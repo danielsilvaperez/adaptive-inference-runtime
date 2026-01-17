@@ -26,6 +26,10 @@ This file provides guidance to Google Gemini when working with code in this repo
 
 This project uses a professional Issue → Branch → PR → Review → Merge workflow.
 
+"pytest" to test and also ensure it's passing lint checks.
+
+conda env name: adaptive-inference-runtime
+
 ### Branch Naming
 - `feature/` - New features
 - `fix/` - Bug fixes

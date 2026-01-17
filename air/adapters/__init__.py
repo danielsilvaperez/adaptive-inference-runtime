@@ -17,8 +17,8 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from air.adapters.base import ModelAdapter
     from air.adapters.huggingface import HuggingFaceAdapter
-    from air.adapters.vllm import VLLMAdapter
     from air.adapters.llama_cpp import LlamaCppAdapter
+    from air.adapters.vllm import VLLMAdapter
 
 __all__ = [
     "ModelAdapter",
