@@ -18,7 +18,7 @@ from air.adapters.base import ModelAdapter
 from air.types import GenerationConfig, Token
 
 if TYPE_CHECKING:
-    from air.types import Logits
+    from air.types import KVCache, Logits
 
 
 class VLLMAdapter(ModelAdapter):
@@ -77,6 +77,7 @@ class VLLMAdapter(ModelAdapter):
         self._is_loaded = False
         self._vocab_size = 0
         self._context_length = 0
+        self._last_prompt_tokens: list[int] | None = None
 
     @property
     def is_loaded(self) -> bool:
@@ -148,6 +149,7 @@ class VLLMAdapter(ModelAdapter):
         self._is_loaded = False
         self._vocab_size = 0
         self._context_length = 0
+        self._last_prompt_tokens = None
 
     def unload_model(self) -> None:
         """Compatibility wrapper for interface unload_model."""
@@ -169,6 +171,7 @@ class VLLMAdapter(ModelAdapter):
             raise ValueError("prompt must be non-empty")
         assert self._llm is not None
 
+        self._last_prompt_tokens = self.tokenize(prompt)
         sampling_params = self._build_sampling_params(
             config=config,
             max_tokens=config.max_tokens,
@@ -181,24 +184,28 @@ class VLLMAdapter(ModelAdapter):
             return iter(())
         return self._yield_tokens(completion)
 
-    def get_logits(self, prompt: str) -> Logits:
+    def get_logits(self, tokens: list[int]) -> Logits:
         """
         Get logits for next token prediction.
 
         Args:
-            prompt: Input prompt.
+            tokens: Token IDs for the prompt context.
 
         Returns:
             Logits tensor for next token.
         """
         self._ensure_loaded()
-        if not prompt:
-            raise ValueError("prompt must be non-empty")
+        if not tokens:
+            raise ValueError("tokens must be non-empty")
         assert self._llm is not None
+        prompt = self.detokenize(tokens)
+        if not prompt:
+            raise ValueError("tokens must decode to a non-empty prompt")
 
         if self._vocab_size <= 0:
             raise RuntimeError("Unable to determine vocab size for vLLM adapter.")
 
+        self._last_prompt_tokens = list(tokens)
         sampling_params = self._build_sampling_params(
             config=GenerationConfig(max_tokens=1, temperature=0.0),
             max_tokens=1,
@@ -220,24 +227,31 @@ class VLLMAdapter(ModelAdapter):
             logits[int(token_id)] = float(value)
         return logits
 
-    def verify_tokens(self, prompt: str, draft_tokens: list[Token]) -> tuple[list[Token], int]:
+    def verify(self, draft_tokens: list[Token]) -> tuple[list[Token], int]:
         """
         Verify draft tokens for speculative decoding.
 
         Args:
-            prompt: Original prompt.
             draft_tokens: Draft tokens to verify.
 
         Returns:
             Accepted tokens and count.
         """
         self._ensure_loaded()
-        if not prompt:
-            raise ValueError("prompt must be non-empty")
         assert self._llm is not None
 
         if not draft_tokens:
             return [], 0
+
+        if self._last_prompt_tokens is None:
+            raise RuntimeError(
+                "No prompt context available for verification. "
+                "Call generate() or get_logits() first."
+            )
+
+        prompt = self.detokenize(self._last_prompt_tokens)
+        if not prompt:
+            raise RuntimeError("Unable to reconstruct prompt for verification.")
 
         sampling_params = self._build_sampling_params(
             config=GenerationConfig(max_tokens=len(draft_tokens), temperature=0.0),
@@ -277,6 +291,68 @@ class VLLMAdapter(ModelAdapter):
             break
 
         return accepted_tokens, accepted_count
+
+    def verify_tokens(self, prompt: str, draft_tokens: list[Token]) -> tuple[list[Token], int]:
+        """
+        Backwards-compatible verification helper that accepts a prompt string.
+        """
+        if not prompt:
+            raise ValueError("prompt must be non-empty")
+        self._last_prompt_tokens = self.tokenize(prompt)
+        return self.verify(draft_tokens)
+
+    def get_kv_cache(self) -> KVCache:
+        """
+        Return KV cache state for the model.
+
+        Raises:
+            RuntimeError: vLLM KV cache access is not yet supported.
+        """
+        self._ensure_loaded()
+        raise RuntimeError("vLLM KV cache access is not yet supported.")
+
+    def set_kv_cache(self, cache: KVCache) -> None:
+        """
+        Restore KV cache state for the model.
+
+        Raises:
+            RuntimeError: vLLM KV cache access is not yet supported.
+        """
+        _ = cache
+        self._ensure_loaded()
+        raise RuntimeError("vLLM KV cache access is not yet supported.")
+
+    def tokenize(self, text: str) -> list[int]:
+        """
+        Tokenize text into token IDs.
+        """
+        self._ensure_loaded()
+        tokenizer = self._tokenizer
+        if tokenizer is None:
+            raise RuntimeError("vLLM tokenizer is unavailable.")
+        encode = getattr(tokenizer, "encode", None)
+        if callable(encode):
+            return list(encode(text))
+        if callable(tokenizer):
+            encoded = tokenizer(text)
+            if isinstance(encoded, dict) and "input_ids" in encoded:
+                return list(encoded["input_ids"])
+        raise RuntimeError("Unable to tokenize prompt with vLLM tokenizer.")
+
+    def detokenize(self, tokens: list[int]) -> str:
+        """
+        Convert token IDs to text.
+        """
+        self._ensure_loaded()
+        if not tokens:
+            return ""
+        tokenizer = self._tokenizer
+        if tokenizer is None:
+            raise RuntimeError("vLLM tokenizer is unavailable.")
+        decode = getattr(tokenizer, "decode", None)
+        if callable(decode):
+            return decode([int(token) for token in tokens], skip_special_tokens=False)
+        raise RuntimeError("Unable to detokenize tokens with vLLM tokenizer.")
 
     def _build_sampling_params(
         self,

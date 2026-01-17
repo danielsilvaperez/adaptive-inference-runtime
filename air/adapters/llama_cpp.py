@@ -16,7 +16,7 @@ from air.adapters.base import ModelAdapter
 from air.types import Token
 
 if TYPE_CHECKING:
-    from air.types import GenerationConfig, Logits
+    from air.types import GenerationConfig, KVCache, Logits
 
 
 class LlamaCppAdapter(ModelAdapter):
@@ -74,6 +74,8 @@ class LlamaCppAdapter(ModelAdapter):
         self._is_loaded = False
         self._vocab_size = 0
         self._context_length = 0
+        self._last_prompt_tokens = None
+        self._last_prompt_tokens: list[int] | None = None
 
     @property
     def is_loaded(self) -> bool:
@@ -179,6 +181,7 @@ class LlamaCppAdapter(ModelAdapter):
             raise ValueError("prompt must be non-empty")
         assert self._llama is not None
 
+        self._last_prompt_tokens = self._tokenize(prompt)
         max_tokens = config.max_tokens if config.max_tokens > 0 else 512
         top_k = config.top_k if config.top_k > 0 else 0
         top_p = config.top_p if config.top_p < 1.0 else 1.0
@@ -203,29 +206,27 @@ class LlamaCppAdapter(ModelAdapter):
         for chunk in stream:
             yield from self._tokens_from_chunk(chunk)
 
-    def get_logits(self, prompt: str) -> Logits:
+    def get_logits(self, tokens: list[int]) -> Logits:
         """
         Get logits for next token prediction.
 
         Args:
-            prompt: Input prompt.
+            tokens: Token IDs for the prompt context.
 
         Returns:
             Logits tensor for next token.
         """
         self._ensure_loaded()
-        if not prompt:
-            raise ValueError("prompt must be non-empty")
+        if not tokens:
+            raise ValueError("tokens must be non-empty")
         assert self._llama is not None
 
-        token_ids = self._tokenize(prompt)
-        if not token_ids:
-            raise ValueError("prompt must yield at least one token")
+        self._last_prompt_tokens = list(tokens)
 
         reset = getattr(self._llama, "reset", None)
         if callable(reset):
             reset()
-        self._llama.eval(token_ids)
+        self._llama.eval(tokens)
 
         scores = self._get_scores()
         if scores is None:
@@ -235,26 +236,29 @@ class LlamaCppAdapter(ModelAdapter):
         last_scores = scores[-1]
         return torch.tensor(last_scores, dtype=torch.float32)
 
-    def verify_tokens(self, prompt: str, draft_tokens: list[Token]) -> tuple[list[Token], int]:
+    def verify(self, draft_tokens: list[Token]) -> tuple[list[Token], int]:
         """
         Verify draft tokens for speculative decoding.
 
         Args:
-            prompt: Original prompt.
             draft_tokens: Draft tokens to verify.
 
         Returns:
             Accepted tokens and count.
         """
         self._ensure_loaded()
-        if not prompt:
-            raise ValueError("prompt must be non-empty")
         assert self._llama is not None
 
         if not draft_tokens:
             return [], 0
 
-        prompt_ids = self._tokenize(prompt)
+        if self._last_prompt_tokens is None:
+            raise RuntimeError(
+                "No prompt context available for verification. "
+                "Call generate() or get_logits() first."
+            )
+
+        prompt_ids = self._last_prompt_tokens
         full_ids = prompt_ids + [token.id for token in draft_tokens]
 
         reset = getattr(self._llama, "reset", None)
@@ -291,6 +295,52 @@ class LlamaCppAdapter(ModelAdapter):
             break
 
         return accepted_tokens, accepted_count
+
+    def verify_tokens(self, prompt: str, draft_tokens: list[Token]) -> tuple[list[Token], int]:
+        """
+        Backwards-compatible verification helper that accepts a prompt string.
+        """
+        if not prompt:
+            raise ValueError("prompt must be non-empty")
+        self._last_prompt_tokens = self._tokenize(prompt)
+        return self.verify(draft_tokens)
+
+    def get_kv_cache(self) -> KVCache:
+        """
+        Return KV cache state for the model.
+
+        Raises:
+            RuntimeError: llama.cpp KV cache access is not yet supported.
+        """
+        self._ensure_loaded()
+        raise RuntimeError("llama.cpp KV cache access is not yet supported.")
+
+    def set_kv_cache(self, cache: KVCache) -> None:
+        """
+        Restore KV cache state for the model.
+
+        Raises:
+            RuntimeError: llama.cpp KV cache access is not yet supported.
+        """
+        _ = cache
+        self._ensure_loaded()
+        raise RuntimeError("llama.cpp KV cache access is not yet supported.")
+
+    def tokenize(self, text: str) -> list[int]:
+        """
+        Tokenize text into token IDs.
+        """
+        if not text:
+            return []
+        return self._tokenize(text)
+
+    def detokenize(self, tokens: list[int]) -> str:
+        """
+        Convert token IDs to text.
+        """
+        if not tokens:
+            return ""
+        return self._detokenize(tokens)
 
     def _tokens_from_chunk(self, chunk: dict[str, Any]) -> list[Token]:
         """Convert a llama.cpp streaming chunk into Token objects."""
