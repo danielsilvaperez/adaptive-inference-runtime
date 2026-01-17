@@ -83,10 +83,10 @@ class TestLlamaCppAdapterLoading:
             list(adapter.generate("test", GenerationConfig(max_tokens=1)))
 
         with pytest.raises(RuntimeError):
-            adapter.get_logits("test")
+            adapter.get_logits([1])
 
         with pytest.raises(RuntimeError):
-            adapter.verify_tokens("test", [])
+            adapter.verify([])
 
         fake_module = _install_fake_llama()
         with pytest.MonkeyPatch.context() as monkeypatch:
@@ -174,7 +174,7 @@ class TestLlamaCppAdapterLogits:
         assert adapter._llama is not None
         adapter._llama.scores = [[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]]
 
-        logits = adapter.get_logits("hello")
+        logits = adapter.get_logits([1, 2])
         assert isinstance(logits, torch.Tensor)
         assert logits.shape == torch.Size([3])
         assert torch.allclose(logits, torch.tensor([0.4, 0.5, 0.6]))
@@ -199,7 +199,8 @@ class TestLlamaCppAdapterLogits:
             Token(id=0, text="wrong", logprob=-2.0),
         ]
 
-        accepted, accepted_count = adapter.verify_tokens("prompt", draft_tokens)
+        adapter._last_prompt_tokens = adapter.tokenize("prompt")
+        accepted, accepted_count = adapter.verify(draft_tokens)
         assert accepted_count == 1
         assert len(accepted) == 2
         assert accepted[1].id == 2

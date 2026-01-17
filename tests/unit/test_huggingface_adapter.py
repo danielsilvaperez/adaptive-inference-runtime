@@ -130,10 +130,10 @@ class TestHuggingFaceAdapterLoading:
             list(adapter.generate("test", config))
 
         with pytest.raises(RuntimeError, match="not loaded"):
-            adapter.get_logits("test")
+            adapter.get_logits([1])
 
         with pytest.raises(RuntimeError, match="not loaded"):
-            adapter.verify_tokens("test", [])
+            adapter.verify([])
 
 
 class TestHuggingFaceAdapterGenerate:
@@ -243,9 +243,6 @@ class TestHuggingFaceAdapterLogits:
         mock_tokenizer_instance.pad_token = "<eos>"
         mock_tokenizer.from_pretrained.return_value = mock_tokenizer_instance
 
-        mock_input_ids = torch.tensor([[1, 2, 3]])
-        mock_tokenizer_instance.return_value = {"input_ids": mock_input_ids}
-
         # Setup model mock
         mock_model_instance = Mock()
         mock_model_instance.device = "cpu"
@@ -265,7 +262,7 @@ class TestHuggingFaceAdapterLogits:
         adapter = HuggingFaceAdapter(model_id="test-model")
         adapter.load()
 
-        logits = adapter.get_logits("Hello")
+        logits = adapter.get_logits([1, 2, 3])
 
         assert logits.shape == (vocab_size,)  # Should return last position only
         assert torch.is_tensor(logits)
@@ -319,7 +316,8 @@ class TestHuggingFaceAdapterVerifyTokens:
         adapter = HuggingFaceAdapter(model_id="test-model")
         adapter.load()
 
-        accepted, count = adapter.verify_tokens("Hello", draft_tokens)
+        adapter._last_prompt_tokens = mock_input_ids[0].tolist()
+        accepted, count = adapter.verify(draft_tokens)
 
         assert count == 3  # All tokens accepted
         assert len(accepted) == 3
@@ -368,7 +366,8 @@ class TestHuggingFaceAdapterVerifyTokens:
         adapter = HuggingFaceAdapter(model_id="test-model")
         adapter.load()
 
-        accepted, count = adapter.verify_tokens("Hello", draft_tokens)
+        adapter._last_prompt_tokens = mock_input_ids[0].tolist()
+        accepted, count = adapter.verify(draft_tokens)
 
         assert count == 1  # Only first token accepted
         assert len(accepted) == 2  # First accepted + correction token
@@ -395,7 +394,8 @@ class TestHuggingFaceAdapterVerifyTokens:
         adapter = HuggingFaceAdapter(model_id="test-model")
         adapter.load()
 
-        accepted, count = adapter.verify_tokens("Hello", [])
+        adapter._last_prompt_tokens = mock_input_ids[0].tolist()
+        accepted, count = adapter.verify([])
 
         assert count == 0
         assert len(accepted) == 0

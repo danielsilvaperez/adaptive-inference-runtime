@@ -70,6 +70,11 @@ class FakeTokenizer:
     def __init__(self, vocab_size: int = 5) -> None:
         self.vocab_size = vocab_size
 
+    def encode(self, text: str) -> list[int]:
+        if not text:
+            return []
+        return [1]
+
     def decode(self, token_ids: list[int], skip_special_tokens: bool = False) -> str:
         _ = skip_special_tokens
         return f"<{token_ids[0]}>"
@@ -204,7 +209,7 @@ class TestVLLMAdapterLogits:
         )
         adapter._llm.outputs = [FakeRequestOutput(outputs=[completion])]
 
-        logits = adapter.get_logits("hello")
+        logits = adapter.get_logits([1])
         assert logits.shape == torch.Size([5])
         assert torch.isclose(logits[1], torch.tensor(-0.1))
         assert torch.isclose(logits[4], torch.tensor(-0.3))
@@ -230,7 +235,8 @@ class TestVLLMAdapterLogits:
             Token(id=3, text="<3>", logprob=-1.0),
         ]
 
-        accepted, accepted_count = adapter.verify_tokens("prompt", draft_tokens)
+        adapter._last_prompt_tokens = [1]
+        accepted, accepted_count = adapter.verify(draft_tokens)
         assert accepted_count == 1
         assert len(accepted) == 2
         assert accepted[1].id == 2
