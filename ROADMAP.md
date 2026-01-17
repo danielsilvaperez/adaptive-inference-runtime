@@ -153,7 +153,7 @@ Run small model by default, escalate to big model only when needed based on conf
 #### Task 1.1: Model Adapters Implementation `[P0]` `[SEQUENTIAL]`
 Must be completed before routing logic.
 
-- [ ] **1.1.1** Implement llama.cpp adapter
+- [✓] **1.1.1** Implement llama.cpp adapter
   - Load model, tokenizer
   - Generate tokens, get logits
   - Extract attention weights (if available)
