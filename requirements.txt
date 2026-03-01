@@ -1,0 +1,17 @@
+# Adaptive Inference Runtime - Core Dependencies
+# Install with: pip install -r requirements.txt
+
+# Deep learning framework
+torch>=2.0.0
+
+# Numerical computing
+numpy>=1.24.0
+
+# Configuration management
+pyyaml>=6.0
+
+# Progress bars
+tqdm>=4.65.0
+
+# Backported typing utilities
+typing_extensions>=4.6.0
