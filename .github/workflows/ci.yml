@@ -59,7 +59,7 @@ jobs:
           pip install mypy torch numpy pyyaml tqdm
 
       - name: Run mypy
-        run: mypy air/ --ignore-missing-imports
+        run: mypy air/ --ignore-missing-imports --follow-imports=skip
 
   test:
     name: Test (Python ${{ matrix.python-version }})

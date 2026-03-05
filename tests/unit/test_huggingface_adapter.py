@@ -394,6 +394,7 @@ class TestHuggingFaceAdapterVerifyTokens:
         adapter = HuggingFaceAdapter(model_id="test-model")
         adapter.load()
 
+        mock_input_ids = torch.tensor([[1, 2, 3]])
         adapter._last_prompt_tokens = mock_input_ids[0].tolist()
         accepted, count = adapter.verify([])
 

@@ -24,8 +24,7 @@ class FakeAdapter:
     def generate(self, prompt: str, config: GenerationConfig):  # type: ignore[override]
         self.last_config = config
         max_tokens = config.max_tokens if config.max_tokens != -1 else len(self._tokens)
-        for token in self._tokens[:max_tokens]:
-            yield token
+        yield from self._tokens[:max_tokens]
 
 
 def test_generate_draft_respects_default_length() -> None:

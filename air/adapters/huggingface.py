@@ -372,11 +372,12 @@ class HuggingFaceAdapter(ModelAdapter):
                     vocab_size = len(self._tokenizer)
                 except TypeError:
                     vocab_size = None
-            if vocab_size is not None:
+            if isinstance(vocab_size, (int, float)):
                 return int(vocab_size)
         if self._model is not None:
-            vocab_size = getattr(self._model.config, "vocab_size", None)
-            if vocab_size is not None:
+            config = getattr(self._model, "config", None)
+            vocab_size = getattr(config, "vocab_size", None)
+            if isinstance(vocab_size, (int, float)):
                 return int(vocab_size)
         return 0
 
