@@ -57,8 +57,8 @@ class SimpleKVCache:
             else:
                 self._size = 0
         else:
-            self._keys = [None] * num_layers  # type: ignore
-            self._values = [None] * num_layers  # type: ignore
+            self._keys = [None] * num_layers
+            self._values = [None] * num_layers
             self._size = 0
 
     @property
@@ -116,8 +116,8 @@ class SimpleKVCache:
 
     def clear(self) -> None:
         """Clear all cached key-value pairs."""
-        self._keys = [None] * self._num_layers  # type: ignore
-        self._values = [None] * self._num_layers  # type: ignore
+        self._keys = [None] * self._num_layers
+        self._values = [None] * self._num_layers
         self._size = 0
 
     def clone(self) -> SimpleKVCache:

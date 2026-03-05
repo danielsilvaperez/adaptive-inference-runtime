@@ -74,7 +74,6 @@ class LlamaCppAdapter(ModelAdapter):
         self._is_loaded = False
         self._vocab_size = 0
         self._context_length = 0
-        self._last_prompt_tokens = None
         self._last_prompt_tokens: list[int] | None = None
 
     @property
@@ -230,9 +229,7 @@ class LlamaCppAdapter(ModelAdapter):
 
         scores = self._get_scores()
         if scores is None:
-            raise RuntimeError(
-                "llama.cpp logits are unavailable. Initialize with logits_all=True."
-            )
+            raise RuntimeError("llama.cpp logits are unavailable. Initialize with logits_all=True.")
         last_scores = scores[-1]
         return torch.tensor(last_scores, dtype=torch.float32)
 
@@ -268,9 +265,7 @@ class LlamaCppAdapter(ModelAdapter):
 
         scores = self._get_scores()
         if scores is None:
-            raise RuntimeError(
-                "llama.cpp logits are unavailable. Initialize with logits_all=True."
-            )
+            raise RuntimeError("llama.cpp logits are unavailable. Initialize with logits_all=True.")
 
         accepted_tokens: list[Token] = []
         accepted_count = 0
@@ -393,7 +388,7 @@ class LlamaCppAdapter(ModelAdapter):
         self._ensure_loaded()
         assert self._llama is not None
         decoded = self._llama.detokenize(token_ids)
-        return decoded.decode("utf-8", errors="ignore")
+        return str(decoded.decode("utf-8", errors="ignore"))
 
     def _resolve_model_int(self, attr: str, default: int) -> int:
         """Resolve model attribute or method returning an integer."""

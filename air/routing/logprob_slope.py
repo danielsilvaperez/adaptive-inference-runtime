@@ -233,7 +233,7 @@ class LogprobSlopeTracker(BaseConfidenceScorer):
             return 0.0
 
         slope = numerator / denominator
-        return slope.item()
+        return float(slope.item())
 
     def _slope_to_confidence(self, slope: float) -> float:
         """

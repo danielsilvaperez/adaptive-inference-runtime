@@ -220,6 +220,7 @@ class InferenceState:
         self._metadata: dict[str, Any] = {}
         self._logprob_window: list[float] = []
         self._logprob_window_size: int = 20
+        self._last_logits: Any = None
 
     # =========================================================================
     # Properties
@@ -279,6 +280,16 @@ class InferenceState:
     def metadata(self) -> dict[str, Any]:
         """Get custom metadata dictionary."""
         return self._metadata
+
+    @property
+    def last_logits(self) -> Any:
+        """Get the most recently computed logits tensor, or None."""
+        return self._last_logits
+
+    @last_logits.setter
+    def last_logits(self, value: Any) -> None:
+        """Set the most recently computed logits tensor."""
+        self._last_logits = value
 
     @property
     def recent_logprobs(self) -> list[float]:

@@ -351,7 +351,7 @@ class HuggingFaceAdapter(ModelAdapter):
         input_ids = encoded.get("input_ids")
         if input_ids is None:
             raise RuntimeError("Tokenizer did not return input_ids.")
-        return input_ids[0].tolist()
+        return list(input_ids[0].tolist())
 
     def detokenize(self, tokens: list[int]) -> str:
         """
@@ -361,7 +361,7 @@ class HuggingFaceAdapter(ModelAdapter):
         assert self._tokenizer is not None
         if not tokens:
             return ""
-        return self._tokenizer.decode(tokens, skip_special_tokens=False)
+        return str(self._tokenizer.decode(tokens, skip_special_tokens=False))
 
     def _resolve_vocab_size(self) -> int:
         """Resolve vocabulary size from tokenizer or model config."""

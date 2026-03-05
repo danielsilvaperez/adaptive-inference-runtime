@@ -91,6 +91,11 @@ class DraftModel:
         self._adaptive_draft = adaptive_draft
 
     @property
+    def model_id(self) -> str:
+        """Return the model identifier of the underlying adapter."""
+        return self._adapter.model_id
+
+    @property
     def adapter(self) -> ModelAdapter:
         """Return the underlying model adapter."""
         return self._adapter

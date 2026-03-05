@@ -351,7 +351,7 @@ class VLLMAdapter(ModelAdapter):
             raise RuntimeError("vLLM tokenizer is unavailable.")
         decode = getattr(tokenizer, "decode", None)
         if callable(decode):
-            return decode([int(token) for token in tokens], skip_special_tokens=False)
+            return str(decode([int(token) for token in tokens], skip_special_tokens=False))
         raise RuntimeError("Unable to detokenize tokens with vLLM tokenizer.")
 
     def _build_sampling_params(
@@ -458,7 +458,7 @@ class VLLMAdapter(ModelAdapter):
             return f"<tok_{token_id}>"
         decode = getattr(tokenizer, "decode", None)
         if callable(decode):
-            return decode([int(token_id)], skip_special_tokens=False)
+            return str(decode([int(token_id)], skip_special_tokens=False))
         return f"<tok_{token_id}>"
 
     def _resolve_tokenizer(self) -> Any | None:

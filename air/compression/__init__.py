@@ -16,11 +16,11 @@ Key Components:
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from air.compression.compressor import KVCacheCompressor
+    from air.compression.compressor import Compressor as KVCacheCompressor
     from air.compression.h2o import H2OCompressor
     from air.compression.heavy_hitter import HeavyHitterCompressor
-    from air.compression.pooling import AttentionPooling
-    from air.compression.quantized import QuantizedCache
+    from air.compression.pooling import PoolingStrategy as AttentionPooling
+    from air.compression.quantized import QuantizedKVCache as QuantizedCache
     from air.compression.safety import (
         CompressionDecision,
         CompressionQualityMonitor,
@@ -54,7 +54,7 @@ def __getattr__(name: str) -> Any:
     if name == "KVCacheCompressor":
         from air.compression import compressor
 
-        return compressor.KVCacheCompressor
+        return compressor.Compressor
     elif name == "HeavyHitterCompressor":
         from air.compression import heavy_hitter
 
@@ -62,11 +62,11 @@ def __getattr__(name: str) -> Any:
     elif name == "AttentionPooling":
         from air.compression import pooling
 
-        return pooling.AttentionPooling
+        return pooling.PoolingStrategy
     elif name == "QuantizedCache":
         from air.compression import quantized
 
-        return quantized.QuantizedCache
+        return quantized.QuantizedKVCache
     elif name == "SlidingWindowCompressor":
         from air.compression import sliding_window
 

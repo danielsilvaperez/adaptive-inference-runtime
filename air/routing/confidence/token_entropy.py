@@ -168,7 +168,7 @@ class EntropyScorer(BaseConfidenceScorer):
             # Clamp to [0.0, 1.0]
             confidence = max(0.0, min(1.0, confidence))
 
-            return confidence
+            return float(confidence)
 
         except (RuntimeError, ValueError, TypeError):
             # On tensor operation errors, return neutral score
