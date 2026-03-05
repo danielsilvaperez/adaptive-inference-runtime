@@ -388,7 +388,7 @@ class HuggingFaceAdapter(ModelAdapter):
         config = getattr(self._model, "config", None)
         for attr in ("max_position_embeddings", "max_seq_len", "n_positions"):
             value = getattr(config, attr, None)
-            if value is not None:
+            if value is not None and isinstance(value, (int, float)):
                 return int(value)
         return 0
 
